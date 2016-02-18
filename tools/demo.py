@@ -31,13 +31,8 @@ CLASSES = ('__background__',
            'motorbike', 'person', 'pottedplant',
            'sheep', 'sofa', 'train', 'tvmonitor')
 
-# only IKEA related classes
-#CLASSES = ('__background__',
-#           'bicycle',
-#           'bottle', 'chair',
-#           'diningtable',
-#           'pottedplant',
-#           'sofa', 'tvmonitor')
+## only IKEA related classes
+#CLASSES = ('__background__', 'bottle', 'chair', 'diningtable', 'pottedplant', 'sofa', 'tvmonitor')
 
 NETS = {'vgg16': ('VGG16',
                   'VGG16_faster_rcnn_final.caffemodel'),
@@ -95,14 +90,14 @@ def demo(net, image_name):
 
     # Visualize detections for each class
     CONF_THRESH = 0.5
-    NMS_THRESH = 0.3
+    NMS_THRESH = 0.3 # get rid of overlapping windows
     for cls_ind, cls in enumerate(CLASSES[1:]):
         cls_ind += 1 # because we skipped background
         cls_boxes = boxes[:, 4*cls_ind:4*(cls_ind + 1)]
         cls_scores = scores[:, cls_ind] # class_score for each class, small if the object not present
         dets = np.hstack((cls_boxes,
                           cls_scores[:, np.newaxis])).astype(np.float32)
-        ipdb.set_trace()
+        #ipdb.set_trace()
         keep = nms(dets, NMS_THRESH) # reduce redundancy
         dets = dets[keep, :]
         vis_detections(im, cls, dets, thresh=CONF_THRESH)
@@ -129,8 +124,12 @@ if __name__ == '__main__':
 
     prototxt = os.path.join(cfg.MODELS_DIR, NETS[args.demo_net][0],
                             'faster_rcnn_alt_opt', 'faster_rcnn_test.pt')
-    caffemodel = os.path.join(cfg.DATA_DIR, 'faster_rcnn_models',
-                              NETS[args.demo_net][1])
+    #caffemodel = os.path.join(cfg.DATA_DIR, 'faster_rcnn_models',
+    #                          NETS[args.demo_net][1])
+
+    caffemodel = os.path.join(cfg.DATA_DIR, '../output/faster_rcnn_end2end/voc_2007_trainval/vgg16_faster_rcnn_iter_70000.caffemodel')
+    #caffemodel = os.path.join(cfg.DATA_DIR, '../output/LSDA_200_strong_detector_finetune_ilsvrc13_val1+train1k_iter_50000.caffemodel')
+    #cfg.TEST.HAS_RPN = False # Use RPN for proposals
 
     if not os.path.isfile(caffemodel):
         raise IOError(('{:s} not found.\nDid you run ./data/script/'
