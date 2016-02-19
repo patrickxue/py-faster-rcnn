@@ -89,7 +89,7 @@ def demo(net, image_name):
            '{:d} object proposals').format(timer.total_time, boxes.shape[0])
 
     # Visualize detections for each class
-    CONF_THRESH = 0.5
+    CONF_THRESH = 0
     NMS_THRESH = 0.3 # get rid of overlapping windows
     for cls_ind, cls in enumerate(CLASSES[1:]):
         cls_ind += 1 # because we skipped background
@@ -97,7 +97,7 @@ def demo(net, image_name):
         cls_scores = scores[:, cls_ind] # class_score for each class, small if the object not present
         dets = np.hstack((cls_boxes,
                           cls_scores[:, np.newaxis])).astype(np.float32)
-        #ipdb.set_trace()
+        ipdb.set_trace()
         keep = nms(dets, NMS_THRESH) # reduce redundancy
         dets = dets[keep, :]
         vis_detections(im, cls, dets, thresh=CONF_THRESH)
