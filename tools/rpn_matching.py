@@ -14,7 +14,6 @@ See README.md for installation instructions before running.
 """
 import ipdb
 import _init_paths
-from tools import image_database_matching as match
 from fast_rcnn.config import cfg
 from fast_rcnn.test import im_detect
 from fast_rcnn.nms_wrapper import nms
@@ -27,6 +26,7 @@ import argparse
 import graphlab as gl
 from PIL import Image
 from utils import from_pil_image as PIL2gl
+gl.canvas.set_target('ipynb')
 
 CLASSES = ('__background__',
            'aeroplane', 'bicycle', 'bird', 'boat',
@@ -43,6 +43,21 @@ NETS = {'vgg16': ('VGG16',
         'zf': ('ZF',
                   'ZF_faster_rcnn_final.caffemodel')}
 
+def transform_and_build_nn(cand_sf, dfe, radius=0.51, k=2):   
+    cand_sf = dfe.transform(cand_sf)
+    cand_sf = cand_sf.add_row_number()
+    db_sf = gl.SFrame('./features_sframe.gl')
+    db_sf = db_sf.add_row_number()
+    nn = gl.nearest_neighbors.create(db_sf,features=['deep_features.image'],distance='cosine')
+    neighbors = nn.query(cand_sf,radius=radius,k=k)
+    return neighbors, db_sf, cand_sf
+
+def image_join(neighbors, db_sf, cand_sf, query_id):
+    tmp_nn = neighbors[neighbors['query_label'] == query_id]
+    tmp_db = db_sf.filter_by(tmp_nn['reference_label'], 'id')
+    cand = cand_sf[cand_sf['id'] == query_id]
+    return cand.append(tmp_db)
+
 def save_img_SF(img, rois):
     """save imgs as SFrame"""
     cand_sf = gl.SFrame()
@@ -52,7 +67,7 @@ def save_img_SF(img, rois):
         cropped_img = PIL2gl.from_pil_image(Image.fromarray(cropped))
         #scipy.misc.imsave('crop_%d.jpg'%count, cropped)
         cur_sf = gl.SFrame({'image': [cropped_img], 'score': [roi[4]]})
-        cand_sf.append(cur_sf)
+        cand_sf = cand_sf.append(cur_sf)
     return cand_sf
 
 def demo(net, image_name, NMS_THRESH_GLOBAL=0.6):
@@ -85,16 +100,18 @@ def demo(net, image_name, NMS_THRESH_GLOBAL=0.6):
         dets = dets[keep, :]
         dets_nms_all = np.vstack((dets_nms_all,  dets)).astype(np.float32)
         #vis_detections(im, cls, dets, thresh=CONF_THRESH)
-    rois_keep = nms(dets_nms_all, NMS_THRESH_GLOBAL) 
+    #rois_keep = nms(dets_nms_all, NMS_THRESH_GLOBAL)  # take those with NMS, but might lose some with larger scores due to overlap with another region 
+    rois_keep = dets_nms_all[:, 4].argsort()[::-1][:50]   # take those with maximum score, but might overlap more
     rois_nms = dets_nms_all[rois_keep, :]
     rois_sf_withScore = save_img_SF(im, rois_nms)
-    ipdb.set_trace()
-    #rois_sf = rois_sf_withScore.remove_column('score')
+    rois_sf = rois_sf_withScore.remove_column('score')
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix=feat)
     dfe = gl.load_model('./alexnet.gl')
-    neighbors, db_sf, cand_sf = match.transform_and_build_nn(rois_sf_withScore, dfe, .51, 2)
+    # 28 imgs in the catalogue, calculates c(100)*n(28) = 2800 similarities
+    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, .6, 2)  # only retain those quries within consin distnace 
     neighbors
-    #image_join(neighbors, db_sf, cand_sf, 9)['image'].show()
+    db_sf.remove_column('path')
+    return neighbors, db_sf, cand_sf
 
 def parse_args():
     """Parse input arguments."""
@@ -146,11 +163,13 @@ if __name__ == '__main__':
     im_names = ['000456.jpg', '000542.jpg', '001150.jpg',
                 '001763.jpg', '004545.jpg']
     im_names = ['20134_cols06a_01_PE362778.jpg', '20141_cols30a_01_PE376670.jpg', 'Pasted image at 2016_02_10 09_03 AM.png']
-    im_names = ['bedroom.jpg', 'living_room.jpg', 'kitchen.jpg']
-
+    #im_names = ['bedroom.jpg', 'living_room.jpg', 'kitchen.jpg']
+    neigh_all = []
+    cand_sf_all = []
     for im_name in im_names:
         print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
         print 'Demo for data/demo/{}'.format(im_name)
-        demo(net, im_name)
-
-    #plt.show()
+        neighbors, db_sf, cand_sf = demo(net, im_name)
+        neigh_all.append(neighbors)
+        cand_sf_all.append(cand_sf)
+        #image_join(neighbors, db_sf, cand_sf, 9)['image'].show()
