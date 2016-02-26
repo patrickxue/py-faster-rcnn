@@ -107,7 +107,6 @@ def demo(net, image_name, NMS_THRESH_GLOBAL=0.6):
         num_rois = np.sum(dets_nms_all[:, 4] >= conf)
         cdf = cdf.append(gl.SFrame({"conf": [conf], "num_rois": [num_rois]})) 
     #rois_keep = nms(dets_nms_all, NMS_THRESH_GLOBAL)  # take those with NMS, but might lose some with larger scores due to overlap with another region 
-    ipdb.set_trace()
     rois_keep = dets_nms_all[:, 4].argsort()[::-1][:50]   # take those with maximum score, but might overlap more
     rois_nms = dets_nms_all[rois_keep, :]
     rois_sf_withScore = save_img_SF(im, rois_nms)

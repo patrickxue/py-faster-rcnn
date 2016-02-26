@@ -97,7 +97,6 @@ def demo(net, image_name):
         cls_scores = scores[:, cls_ind] # class_score for each class, small if the object not present
         dets = np.hstack((cls_boxes,
                           cls_scores[:, np.newaxis])).astype(np.float32)
-        ipdb.set_trace()
         keep = nms(dets, NMS_THRESH) # reduce redundancy
         dets = dets[keep, :]
         vis_detections(im, cls, dets, thresh=CONF_THRESH)
