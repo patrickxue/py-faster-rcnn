@@ -87,7 +87,7 @@ def demo(net, image_name, NMS_THRESH_GLOBAL=0.6):
            '{:d} object proposals').format(timer.total_time, boxes.shape[0])
 
     # Visualize detections for each class
-    CONF_THRESH = 0
+    CONF_THRESH = np.linspace(0,1,11) 
     NMS_THRESH = 0.3 # get rid of overlapping windows
     dets_nms_all = np.zeros((0, 5))
     for cls_ind, cls in enumerate(CLASSES[1:]):
@@ -96,11 +96,18 @@ def demo(net, image_name, NMS_THRESH_GLOBAL=0.6):
         cls_scores = scores[:, cls_ind] # class_score for each class, small if the object not present
         dets = np.hstack((cls_boxes,
                           cls_scores[:, np.newaxis])).astype(np.float32)
-        keep = nms(dets, NMS_THRESH) # reduce redundancy
-        dets = dets[keep, :]
+        # NMS inside each class
+        #keep = nms(dets, NMS_THRESH) # reduce redundancy
+        #dets = dets[keep, :]
         dets_nms_all = np.vstack((dets_nms_all,  dets)).astype(np.float32)
         #vis_detections(im, cls, dets, thresh=CONF_THRESH)
+    # Calculate CDF with different threshold
+    cdf = gl.SFrame()
+    for conf in CONF_THRESH:
+        num_rois = np.sum(dets_nms_all[:, 4] >= conf)
+        cdf = cdf.append(gl.SFrame({"conf": [conf], "num_rois": [num_rois]})) 
     #rois_keep = nms(dets_nms_all, NMS_THRESH_GLOBAL)  # take those with NMS, but might lose some with larger scores due to overlap with another region 
+    ipdb.set_trace()
     rois_keep = dets_nms_all[:, 4].argsort()[::-1][:50]   # take those with maximum score, but might overlap more
     rois_nms = dets_nms_all[rois_keep, :]
     rois_sf_withScore = save_img_SF(im, rois_nms)
