@@ -42,7 +42,12 @@ NETS = {'vgg16': ('VGG16',
                   'VGG16_faster_rcnn_final.caffemodel'),
         'zf': ('ZF',
                   'ZF_faster_rcnn_final.caffemodel')}
-
+def get_cdf(dets_nms_all, CONF_THRESH=np.linspace(0,1,11)):
+    cdf = gl.SFrame()
+    for conf in CONF_THRESH:
+        num_rois = np.sum(dets_nms_all[:, 4] >= conf)
+        cdf = cdf.append(gl.SFrame({"conf": [conf], "num_rois": [num_rois]})) 
+    return cdf
 def transform_and_build_nn(cand_sf, dfe, radius=0.51, k=2):   
     cand_sf = dfe.transform(cand_sf)
     cand_sf = cand_sf.add_row_number()
@@ -87,7 +92,6 @@ def demo(net, image_name, NMS_THRESH_GLOBAL=0.6):
            '{:d} object proposals').format(timer.total_time, boxes.shape[0])
 
     # Visualize detections for each class
-    CONF_THRESH = np.linspace(0,1,11) 
     NMS_THRESH = 0.3 # get rid of overlapping windows
     dets_nms_all = np.zeros((0, 5))
     for cls_ind, cls in enumerate(CLASSES[1:]):
@@ -102,13 +106,12 @@ def demo(net, image_name, NMS_THRESH_GLOBAL=0.6):
         dets_nms_all = np.vstack((dets_nms_all,  dets)).astype(np.float32)
         #vis_detections(im, cls, dets, thresh=CONF_THRESH)
     # Calculate CDF with different threshold
-    cdf = gl.SFrame()
-    for conf in CONF_THRESH:
-        num_rois = np.sum(dets_nms_all[:, 4] >= conf)
-        cdf = cdf.append(gl.SFrame({"conf": [conf], "num_rois": [num_rois]})) 
-    #rois_keep = nms(dets_nms_all, NMS_THRESH_GLOBAL)  # take those with NMS, but might lose some with larger scores due to overlap with another region 
-    rois_keep = dets_nms_all[:, 4].argsort()[::-1][:50]   # take those with maximum score, but might overlap more
+    rois_keep = nms(dets_nms_all, NMS_THRESH_GLOBAL)  # take those with NMS, but might lose some with larger scores due to overlap with another region 
+    #rois_keep = dets_nms_all[:, 4].argsort()[::-1][:50]   # take those with maximum score, but might overlap more
     rois_nms = dets_nms_all[rois_keep, :]
+    CONF_THRESH=np.linspace(0,1,11)
+    cdf = get_cdf(rois_nms, CONF_THRESH)
+    ipdb.set_trace()
     rois_sf_withScore = save_img_SF(im, rois_nms)
     rois_sf = rois_sf_withScore.remove_column('score')
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix=feat)
