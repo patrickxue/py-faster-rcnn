@@ -48,24 +48,18 @@ class IkeaSpider(scrapy.Spider):
     cata = response.css(".product .image img")
     cata_url = []
     #cata_list = []
-    ipdb.set_trace()
     for sub_cata in cata:
       sub_cata_url = sub_cata.xpath("@src").extract_first()
       if sub_cata_url[:4] != "http":
         sub_cata_url = self.base_url + sub_cata_url 
       cata_url.append(sub_cata_url)
       #cata_list = cata_list.append(IkeaItem(file_urls=sub_cata_url))
+    global data_url  # make it to refer to the global SFrame variable for continuous appending
     data_url = data_url.append(gl.SFrame({"cls": [cls], "query": [query_url], "cata": [cata_url]}))
+    if data_url.__len__()%100 == 0:
+      data_url.save("../../data_url_snapshot_{}.gl".format(data_url.__len__()))
     #data.append(gl.SFrame({"cls": [cls], "query": [query_item], "cata": cata_list}))
     #yield scrapy.Request(all_url, self.parse_img)
     
-  def parse_img(self, response):
-    img_url = response.url
-    query = IkeaItem(file_urls=img_url[0])
-    cata_list = []
-    for url in img_url[1:]:
-      cata_list = cata_list.append(IkeaItem(file_urls=[url]))
-    data.append(gl.SFrame({"cls": ["foo"], "query": [query], "cata": cata_list}))
-
-data_url.save("../../data_url.gl")
+data_url.save("../../data_url_final.gl")
 #data.save("../../data_item.gl")
