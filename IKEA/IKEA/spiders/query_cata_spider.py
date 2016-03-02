@@ -38,7 +38,7 @@ class IkeaSpider(scrapy.Spider):
       
   def parse_gallery_pic(self, response):
     # response url contains the class (the img is from bedroom/bathroom, etc) info
-    cls = response.url.split('/')[9]
+    cls = response.url.split('/')[8]
     query = response.css(".roomComponent img")
     query_url = query.xpath("@src").extract_first()
     query_item = IkeaItem(file_urls=query_url)
@@ -56,10 +56,13 @@ class IkeaSpider(scrapy.Spider):
       #cata_list = cata_list.append(IkeaItem(file_urls=sub_cata_url))
     global data_url  # make it to refer to the global SFrame variable for continuous appending
     data_url = data_url.append(gl.SFrame({"cls": [cls], "query": [query_url], "cata": [cata_url]}))
-    if data_url.__len__()%100 == 0:
+    if data_url.__len__()%200 == 0:
       data_url.save("../../data_url_snapshot_{}.gl".format(data_url.__len__()))
+    #if data_url.__len__() > 200 and data_url.__len__()%10 ==0:
+    #  data_url.save("../../data_url_snapshot_{}.gl".format(data_url.__len__()))
     #data.append(gl.SFrame({"cls": [cls], "query": [query_item], "cata": cata_list}))
-    #yield scrapy.Request(all_url, self.parse_img)
+    #yield IkeaItem(file_urls=[query_url])
     
-data_url.save("../../data_url_final.gl")
-#data.save("../../data_item.gl")
+  def closed(reason):
+    data_url.save("../../data_url_final.gl")
+#data_url.save("../../data_url_final.gl")
