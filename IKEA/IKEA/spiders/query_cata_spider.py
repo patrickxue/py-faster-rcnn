@@ -60,7 +60,6 @@ class IkeaSpider(scrapy.Spider):
     #yield scrapy.Request(all_url, self.parse_img)
     
   def parse_img(self, response):
-    ipdb.set_trace()
     img_url = response.url
     query = IkeaItem(file_urls=img_url[0])
     cata_list = []
@@ -69,4 +68,4 @@ class IkeaSpider(scrapy.Spider):
     data.append(gl.SFrame({"cls": ["foo"], "query": [query], "cata": cata_list}))
 
 data_url.save("../../data_url.gl")
-data.save("../../data_item.gl")
+#data.save("../../data_item.gl")
