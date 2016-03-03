@@ -34,15 +34,18 @@ class IkeaSpider(scrapy.Spider):
   def parse_gallery_grid(self, response):
     gallery_grid = response.css(".roomblock a")
     for gallery_pic in gallery_grid:
-      yield scrapy.Request(self.base_url + gallery_pic.xpath("@href").extract_first(), self.parse_gallery_pic)
+      ipdb.set_trace()
+      href = gallery_pic.xpath("@href").extract_first()
+      yield scrapy.Request(self.base_url + href, self.parse_gallery_pic)
       
   def parse_gallery_pic(self, response):
     # response url contains the class (the img is from bedroom/bathroom, etc) info
     cls = response.url.split('/')[8]
     query = response.css(".roomComponent img")
+    ipdb.set_trace()
     query_url = query.xpath("@src").extract_first()
-    query_item = IkeaItem(file_urls=query_url)
-    if query_url[:4] != "http":  # using relative address
+    #query_item = IkeaItem(file_urls=query_url)
+    if query_url is not None and query_url[:4] != "http":  # using relative address
       query_url = self.base_url +  query_url
     # parse catalogue
     cata = response.css(".product .image img")
