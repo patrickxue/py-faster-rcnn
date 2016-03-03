@@ -13,8 +13,8 @@ class IkeaSpider(scrapy.Spider):
   '''
   name = "debug_spider"
   start_urls = ["http://www.ikea.com/us/en"]
-  #start_urls = ["http://www.ikea.com/us/en/catalog/categories/departments/food/"]
-  start_urls = ["http://www.ikea.com/us/en/catalog/categories/departments/bathroom/tools/coba/roomset/20161_coba02a/"]
+  #start_urls = ["http://www.ikea.com/us/en/catalog/categories/departments/bathroom/tools/coba/roomset/20161_coba02a/"]
+  #start_urls = ["http://www.ikea.com/us/en/catalog/categories/departments/bathroom/"]
   base_url = "http://www.ikea.com"
 
   def parse(self, response):
@@ -23,23 +23,25 @@ class IkeaSpider(scrapy.Spider):
       yield scrapy.Request(self.base_url + sub_cata.xpath("@href").extract_first(), self.parse_gallery)
 
   def parse_gallery(self, response):
-    xpath_view_gallery = response.css(".gridRow .gridComponent a")
+    # response.url = http://www.ikea.com/us/en/catalog/categories/departments/bathroom/
+    xpath_view_gallery = response.css(".gridRow .gridComponent .bodyTextGray")
     # only some of teh sub_cata contains view gallery option
     # select those contains View Gallery option
     if xpath_view_gallery is not None:
-      href = xpath_view_gallery.xpath("@href").extract_first()
+      href = xpath_view_gallery.xpath("//a[contains(., 'View gallery')]/@href").extract_first()
       # href points to gallery address
-      if href[:3] == '/us':
+      if href[-4:] == 'set/':  # ensure it points to roomset page
         yield scrapy.Request(self.base_url + href, self.parse_gallery_grid)
  
   def parse_gallery_grid(self, response):
+    # response.url= http://www.ikea.com/us/en/catalog/categories/departments/bathroom/tools/coba/roomset/
     gallery_grid = response.css(".roomblock a")
     for gallery_pic in gallery_grid:
-      #ipdb.set_trace()
       href = gallery_pic.xpath("@href").extract_first()
       yield scrapy.Request(self.base_url + href, self.parse_gallery_pic)
       
   def parse_gallery_pic(self, response):
+    # response.url=http://www.ikea.com/us/en/catalog/categories/departments/bathroom/tools/coba/roomset/20161_coba02a/
     # response url contains the class (the img is from bedroom/bathroom, etc) info
     cls = response.url.split('/')[8]
     query = response.css(".roomComponent img")
@@ -50,7 +52,6 @@ class IkeaSpider(scrapy.Spider):
     cata = response.css(".product .image img")
     prd = response.css(".product .image a")
     cata_url = []
-    ipdb.set_trace()
     for idx in xrange(len(cata)):
       sub_cata_url = cata[idx].xpath("@src").extract_first()
       if sub_cata_url[:4] != "http":
@@ -62,9 +63,11 @@ class IkeaSpider(scrapy.Spider):
 
     global data_url  # make it to refer to the global SFrame variable for continuous appending
     data_url = data_url.append(gl.SFrame({"cls": [cls], "query": [query_url], "cata": [cata_url]}))
-    if data_url.__len__()%200 == 0:
+    if data_url.__len__()%100 == 0:
       data_url.save("../../data_url_snapshot_{}.gl".format(data_url.__len__()))
-    if data_url.__len__() > 200 and data_url.__len__()%10 ==0:
+    if data_url.__len__() > 235:
       data_url.save("../../data_url_snapshot_{}.gl".format(data_url.__len__()))
     
+  def closed():   
+    data_url.save("../../data_url_final.gl")
 #data_url.save("../../data_url_final.gl")
