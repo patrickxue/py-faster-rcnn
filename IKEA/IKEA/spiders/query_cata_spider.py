@@ -14,6 +14,7 @@ class IkeaSpider(scrapy.Spider):
   name = "query_cata_spider"
   start_urls = ["http://www.ikea.com/us/en"]
   #start_urls = ["http://www.ikea.com/us/en/catalog/categories/departments/food/"]
+  start_urls = ["http://www.ikea.com/us/en/catalog/categories/departments/bathroom/tools/coba/roomset/20161_coba02a/"]
   base_url = "http://www.ikea.com"
 
   def parse(self, response):
@@ -34,7 +35,7 @@ class IkeaSpider(scrapy.Spider):
   def parse_gallery_grid(self, response):
     gallery_grid = response.css(".roomblock a")
     for gallery_pic in gallery_grid:
-      ipdb.set_trace()
+      #ipdb.set_trace()
       href = gallery_pic.xpath("@href").extract_first()
       yield scrapy.Request(self.base_url + href, self.parse_gallery_pic)
       
@@ -61,11 +62,9 @@ class IkeaSpider(scrapy.Spider):
     data_url = data_url.append(gl.SFrame({"cls": [cls], "query": [query_url], "cata": [cata_url]}))
     if data_url.__len__()%200 == 0:
       data_url.save("../../data_url_snapshot_{}.gl".format(data_url.__len__()))
-    #if data_url.__len__() > 200 and data_url.__len__()%10 ==0:
-    #  data_url.save("../../data_url_snapshot_{}.gl".format(data_url.__len__()))
+    if data_url.__len__() > 200 and data_url.__len__()%10 ==0:
+      data_url.save("../../data_url_snapshot_{}.gl".format(data_url.__len__()))
     #data.append(gl.SFrame({"cls": [cls], "query": [query_item], "cata": cata_list}))
     #yield IkeaItem(file_urls=[query_url])
     
-  def closed(reason):
-    data_url.save("../../data_url_final.gl")
 #data_url.save("../../data_url_final.gl")
