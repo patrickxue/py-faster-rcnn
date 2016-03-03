@@ -43,7 +43,6 @@ class IkeaSpider(scrapy.Spider):
     # response url contains the class (the img is from bedroom/bathroom, etc) info
     cls = response.url.split('/')[8]
     query = response.css(".roomComponent img")
-    ipdb.set_trace()
     query_url = query.xpath("@src").extract_first()
     if query_url is not None and query_url[:4] != "http":  # using relative address
       query_url = self.base_url +  query_url
@@ -51,13 +50,14 @@ class IkeaSpider(scrapy.Spider):
     cata = response.css(".product .image img")
     prd = response.css(".product .image a")
     cata_url = []
+    ipdb.set_trace()
     for idx in xrange(len(cata)):
       sub_cata_url = cata[idx].xpath("@src").extract_first()
       if sub_cata_url[:4] != "http":
-        sub_cata_url = self.base_url + sub_cata_url 
+        sub_cata_url = self.base_url + sub_cata_url
       sub_prd_url = prd[idx].xpath("@href").extract_first()
       sub_prd_id = sub_prd_url.split('/')[-2]
-      sub_cata_dic = {"url": sub_cata_url, "prd_id": sub_prod_id}
+      sub_cata_dic = {"url": sub_cata_url, "prd_id": sub_prd_id}
       cata_url.append(sub_cata_dic)
 
     global data_url  # make it to refer to the global SFrame variable for continuous appending
