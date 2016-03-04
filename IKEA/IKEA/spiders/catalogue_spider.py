@@ -2,7 +2,10 @@ from IKEA.items import IkeaItem
 import ipdb
 import datetime
 import scrapy
- 
+import graphlab as gl
+
+cata = gl.SFrame()
+
 class IkeaSpider(scrapy.Spider):
   name = "IKEA_catalogue_spider"
   start_urls = ["http://www.ikea.com/us/en/catalog/allproducts/"]
@@ -15,10 +18,9 @@ class IkeaSpider(scrapy.Spider):
       yield scrapy.Request(self.base_url + sub_cata.xpath("@href").extract_first(), self.parse_page)
 
   def parse_page(self, response):
-    for href in response.css(".product .image img"):
-      yield scrapy.Request(self.base_url + href.xpath("@src").extract_first(),
-        self.parse_img)
- 
-  def parse_img(self, response):
-    img_url = response.url
-    yield IkeaItem(file_urls=[img_url])
+    #for href in response.css(".product .image img"):
+    for href in response.css(".product .image"):
+      prd_url = self.base_url + href.css("a").xpath("@href").extract_first()
+      pid = prd_url.split('/')[-2]
+      img_url = self.base_url + href.css("img").xpath("@src").extract_first()
+      yield IkeaItem(file_urls=[img_url], pid=[pid])

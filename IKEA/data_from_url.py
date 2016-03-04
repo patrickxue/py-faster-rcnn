@@ -1,6 +1,5 @@
 import graphlab as gl
 import _init_paths
-import numpy as np
 from PIL import Image
 from utils import from_pil_image as PIL2gl
 from cStringIO import StringIO
