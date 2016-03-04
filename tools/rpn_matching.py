@@ -37,7 +37,7 @@ CLASSES = ('__background__',
 
 ## only IKEA related classes
 #CLASSES = ('__background__', 'bottle', 'chair', 'diningtable', 'pottedplant', 'sofa', 'tvmonitor')
-
+ipdb.set_trace()
 NETS = {'vgg16': ('VGG16',
                   'VGG16_faster_rcnn_final.caffemodel'),
         'zf': ('ZF',
@@ -48,10 +48,10 @@ def get_cdf(dets_nms_all, CONF_THRESH=np.linspace(0,1,11)):
         num_rois = np.sum(dets_nms_all[:, 4] >= conf)
         cdf = cdf.append(gl.SFrame({"conf": [conf], "num_rois": [num_rois]})) 
     return cdf
-def transform_and_build_nn(cand_sf, dfe, radius=0.51, k=2):   
+def transform_and_build_nn(cand_sf, dfe, db="./features_sframe.gl", radius=0.51, k=2):   
     cand_sf = dfe.transform(cand_sf)
     cand_sf = cand_sf.add_row_number()
-    db_sf = gl.SFrame('./features_sframe.gl')
+    db_sf = gl.SFrame(db)
     db_sf = db_sf.add_row_number()
     nn = gl.nearest_neighbors.create(db_sf,features=['deep_features.image'],distance='cosine')
     neighbors = nn.query(cand_sf,radius=radius,k=k)
@@ -75,13 +75,16 @@ def save_img_SF(img, rois):
         cand_sf = cand_sf.append(cur_sf)
     return cand_sf
 
-def demo(net, image_name, NMS_THRESH_GLOBAL=0.6):
+def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.6):
     """Detect object classes in an image using pre-computed object proposals."""
 
     # Load the demo image
     #im_file = os.path.join(cfg.DATA_DIR, 'demo', image_name)
-    im_file = os.path.join(cfg.DATA_DIR, 'demo', 'imgs', image_name)
-    im = cv2.imread(im_file)
+    if isStringType(image_name):
+      im_file = os.path.join(cfg.DATA_DIR, 'demo', 'imgs', image_name)
+      im = cv2.imread(im_file)
+    if image_name is gl.Image:
+      im = gl.Image._to_pil_image(image_name)
 
     # Detect all object classes and regress object bounds
     timer = Timer()
@@ -117,7 +120,7 @@ def demo(net, image_name, NMS_THRESH_GLOBAL=0.6):
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix=feat)
     dfe = gl.load_model('./alexnet.gl')
     # 28 imgs in the catalogue, calculates c(100)*n(28) = 2800 similarities
-    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, .6, 2)  # only retain those quries within consin distnace 
+    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, db=db, .6, 2)
     neighbors
     db_sf.remove_column('path')
     return neighbors, db_sf, cand_sf
