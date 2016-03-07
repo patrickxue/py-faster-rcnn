@@ -26,6 +26,7 @@ import argparse
 import graphlab as gl
 from PIL import Image
 from utils import from_pil_image as PIL2gl
+from utils import to_pil_image as gl2PIL
 gl.canvas.set_target('ipynb')
 
 CLASSES = ('__background__',
@@ -37,7 +38,6 @@ CLASSES = ('__background__',
 
 ## only IKEA related classes
 #CLASSES = ('__background__', 'bottle', 'chair', 'diningtable', 'pottedplant', 'sofa', 'tvmonitor')
-ipdb.set_trace()
 NETS = {'vgg16': ('VGG16',
                   'VGG16_faster_rcnn_final.caffemodel'),
         'zf': ('ZF',
@@ -48,6 +48,7 @@ def get_cdf(dets_nms_all, CONF_THRESH=np.linspace(0,1,11)):
         num_rois = np.sum(dets_nms_all[:, 4] >= conf)
         cdf = cdf.append(gl.SFrame({"conf": [conf], "num_rois": [num_rois]})) 
     return cdf
+
 def transform_and_build_nn(cand_sf, dfe, db="./features_sframe.gl", radius=0.51, k=2):   
     cand_sf = dfe.transform(cand_sf)
     cand_sf = cand_sf.add_row_number()
@@ -80,11 +81,12 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.6):
 
     # Load the demo image
     #im_file = os.path.join(cfg.DATA_DIR, 'demo', image_name)
-    if isStringType(image_name):
+    if isinstance(image_name, basestring):
       im_file = os.path.join(cfg.DATA_DIR, 'demo', 'imgs', image_name)
       im = cv2.imread(im_file)
-    if image_name is gl.Image:
-      im = gl.Image._to_pil_image(image_name)
+    else:
+      #im = gl2PIL.to_pil_image(image_name)
+      im = image_name.pixel_data 
 
     # Detect all object classes and regress object bounds
     timer = Timer()
@@ -114,13 +116,14 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.6):
     rois_nms = dets_nms_all[rois_keep, :]
     CONF_THRESH=np.linspace(0,1,11)
     cdf = get_cdf(rois_nms, CONF_THRESH)
-    ipdb.set_trace()
     rois_sf_withScore = save_img_SF(im, rois_nms)
     rois_sf = rois_sf_withScore.remove_column('score')
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix=feat)
+    alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
     dfe = gl.load_model('./alexnet.gl')
     # 28 imgs in the catalogue, calculates c(100)*n(28) = 2800 similarities
-    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, db=db, .6, 2)
+    ipdb.set_trace()
+    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, db, .6, 2)
     neighbors
     db_sf.remove_column('path')
     return neighbors, db_sf, cand_sf
