@@ -9,4 +9,5 @@ import ipdb
 
 ipdb.set_trace()
 cata_db = json.loads("./cata_db_pid.json")
+db_sf = gl.SFrame.read_json("./cata_db_pid.json")
 
