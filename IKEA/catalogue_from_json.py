@@ -33,6 +33,8 @@ for cata in cata_db:
   pid_list.append(pid)
   print cata["pid"][0] + "\n++++++++++++++++++++++++"
   cata_db_dedup = cata_db_dedup.append(gl.SFrame({"url": cata["file_urls"], "pid": cata["pid"]}))
+cata_db = json.loads("./cata_db_pid.json")
+db_sf = gl.SFrame.read_json("./cata_db_pid.json")
 
 cata_db_dedup.save("cata_db.gl")
 #cata_db_new = gl.data_matching.deduplication.create(cata_db)
