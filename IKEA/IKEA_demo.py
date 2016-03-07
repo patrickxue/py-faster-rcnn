@@ -24,5 +24,3 @@ def get_topk_match(neighbors, topk=5):
   return topk_rois, topk_cand
 
 def join(topk_cand, cata_GT):
-  
-
