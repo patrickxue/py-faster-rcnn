@@ -26,7 +26,6 @@ import argparse
 import graphlab as gl
 from PIL import Image
 from utils import from_pil_image as PIL2gl
-from utils import to_pil_image as gl2PIL
 gl.canvas.set_target('ipynb')
 
 CLASSES = ('__background__',
@@ -48,18 +47,17 @@ def get_cdf(dets_nms_all, CONF_THRESH=np.linspace(0,1,11)):
         num_rois = np.sum(dets_nms_all[:, 4] >= conf)
         cdf = cdf.append(gl.SFrame({"conf": [conf], "num_rois": [num_rois]})) 
     return cdf
-
-def transform_and_build_nn(cand_sf, dfe, db="./features_sframe.gl", radius=0.51, k=1):   
+def transform_and_build_nn(cand_sf, dfe, db="./features_sframe.gl", radius=0.6, k=1):   
     cand_sf = dfe.transform(cand_sf)
     cand_sf = cand_sf.add_row_number()
     db_sf = gl.SFrame(db)
     db_sf = db_sf.add_row_number()
-    ipdb.set_trace()
     nn = gl.nearest_neighbors.create(db_sf,features=['deep_features.image'],distance='cosine')
     neighbors = nn.query(cand_sf,radius=radius,k=k)
     return neighbors, db_sf, cand_sf
 
 def image_join(neighbors, db_sf, cand_sf, query_id):
+    """"append the matched catalogue img with a query RoI"""
     tmp_nn = neighbors[neighbors['query_label'] == query_id]
     tmp_db = db_sf.filter_by(tmp_nn['reference_label'], 'id')
     cand = cand_sf[cand_sf['id'] == query_id]
@@ -82,12 +80,11 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.6):
 
     # Load the demo image
     #im_file = os.path.join(cfg.DATA_DIR, 'demo', image_name)
-    if isinstance(image_name, basestring):
+    if isStringType(image_name):
       im_file = os.path.join(cfg.DATA_DIR, 'demo', 'imgs', image_name)
       im = cv2.imread(im_file)
-    else:
-      #im = gl2PIL.to_pil_image(image_name)
-      im = image_name.pixel_data 
+    if image_name is gl.Image:
+      im = gl.Image._to_pil_image(image_name)
 
     # Detect all object classes and regress object bounds
     timer = Timer()
@@ -112,19 +109,17 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.6):
         dets_nms_all = np.vstack((dets_nms_all,  dets)).astype(np.float32)
         #vis_detections(im, cls, dets, thresh=CONF_THRESH)
     # Calculate CDF with different threshold
-    #rois_keep = nms(dets_nms_all, NMS_THRESH_GLOBAL)  # take those with NMS, but might lose some with larger scores due to overlap with another region 
-    rois_keep = dets_nms_all[:, 4].argsort()[::-1][:50]   # take those with maximum score, but might overlap more
+    rois_keep = nms(dets_nms_all, NMS_THRESH_GLOBAL)  # take those with NMS, but might lose some with larger scores due to overlap with another region 
+    #rois_keep = dets_nms_all[:, 4].argsort()[::-1][:50]   # take those with maximum score, but might overlap more
     rois_nms = dets_nms_all[rois_keep, :]
     CONF_THRESH=np.linspace(0,1,11)
     cdf = get_cdf(rois_nms, CONF_THRESH)
     rois_sf_withScore = save_img_SF(im, rois_nms)
     rois_sf = rois_sf_withScore.remove_column('score')
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix=feat)
-    alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
-    dfe = gl.load_model(alexnet)
+    dfe = gl.load_model('./alexnet.gl')
     # 28 imgs in the catalogue, calculates c(100)*n(28) = 2800 similarities
-    ipdb.set_trace()
-    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, db, .6, 2)
+    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, db=db, .6, 2)
     neighbors
     db_sf.remove_column('path')
     return neighbors, db_sf, cand_sf

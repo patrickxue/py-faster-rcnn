@@ -1,3 +1,4 @@
+import _init_paths
 import caffe
 import graphlab as gl
 import numpy as np
@@ -56,6 +57,7 @@ def load_model(batchsize):
 batchsize = 25
 #image_path = '/home/ubuntu/ikea_image_dir'
 images = gl.load_sframe("./cata_db_img.gl")["img"]
+model = 'alexnet_places2'
 #model = 'places205CNN_deploy'
 counter = 0
 net, transformer = load_model(batchsize)

@@ -1,5 +1,6 @@
 """end to end IKEA demo using crawled img. Run from the directory py-faster-RCNN/IKEA"""
 import graphlab as gl
+import numpy as np
 import _init_paths
 from fast_rcnn.config import cfg
 import caffe, os, sys
@@ -33,9 +34,9 @@ def get_topRoI_distance(neighbors, topk=5):
   """get topk RoIs according to distance"""
   dist = np.asarray(neighbors["distance"])
   query_label = np.asarray(neighbors["query_label"])
-  idx = dist.argsort(dist)
+  idx = dist.argsort()
   roi_id = query_label[idx][0:topk] 
-  topk_rois = neighbors[neighbors.apply(lambda x: True if x["query_label"] in id_score else False)]
+  topk_rois = neighbors[neighbors.apply(lambda x: True if x["query_label"] in roi_id else False)]
   return topk_rois
 
 def join(topk_rois, qid, data):
@@ -68,6 +69,7 @@ def parse_args():
                       choices=NETS.keys(), default='vgg16')
 
   args = parser.parse_args()
+  return args
 
 if __name__ == '__main__':
   cfg.TEST.HAS_RPN = True  # Use RPN for proposals
@@ -98,12 +100,12 @@ if __name__ == '__main__':
   # para inint
   topk = 5
   # +++++load data, select query: cls, qid
-  #data = gl.load_sframe("./data_237.gl")
+  data = gl.load_sframe("./data_237.gl")
   #small_db = gl.load_sframe("../tools/features_sframe.gl")
   #full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
   full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   #dfe = gl.load_model("./PLACE.gl")
-  cls = list(set(data["cls"]))
+  #cls = list(set(data["cls"]))
   #qid = input(">>> input query id (0~237): ")
   qid = 0
   demo(net, qid, data, full_db)
