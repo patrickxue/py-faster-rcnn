@@ -12,10 +12,10 @@ cata_db = gl.load_sframe("./cata_db.gl")
 cata_db = gl.load_sframe("./cata_db_img.gl")
 cata_db.rename({"img": "image"})
 #cata_db = gl.load_sframe("./feature_PLACE_db.gl")
-alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
-dfe = gl.load_model(alexnet)
+#alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
+#dfe = gl.load_model(alexnet)
 ipdb.set_trace()
-feature_db = dfe.transform(cata_db)
+#feature_db = dfe.transform(cata_db)
 cata_db_img = gl.SFrame() 
 for cata in cata_db:
   sub_cata_img = PIL2gl.from_pil_image(Image.open(StringIO(urllib.urlopen(cata["url"]).read())))

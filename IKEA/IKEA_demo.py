@@ -40,17 +40,15 @@ def get_topRoI_distance(neighbors, topk=5):
 
 def join(topk_rois, qid, data):
   cata_GT = data[qid]["cata"]
-  topk_cand = []
-  for roi in topk_rois:
-    topk_cand.append(roi["reference_label"])
-  matches = inner_join(topk_cand, cata_GT)
+  matches = inner_join(topk_rois, cata_GT)
   return matches
 
 def demo(net, qid, data, db):
   query = data[0]["q_img"]
   neighbors, db_sf, cand_sf_withScore = match.demo(net, query, db)
   neighbors = neighbors.add_row_number()
-  topk_rois = get_topk_match(neighbors)
+  ipdb.set_trace()
+  topk_rois = get_topRoI_distance(neighbors, topk=5)
   matches = join(topk_rois, qid, data)
   neighbors.print_rows()
   #roi_id = input(">>> input roi_id: ")
@@ -59,19 +57,17 @@ def demo(net, qid, data, db):
   match.image_join(neighbors, db_sf, cand_sf, roi_id)['image'].show()
 
 def parse_args():
-    """Parse input arguments."""
-    parser = argparse.ArgumentParser(description='Faster R-CNN demo')
-    parser.add_argument('--gpu', dest='gpu_id', help='GPU device id to use [0]',
-                        default=0, type=int)
-    parser.add_argument('--cpu', dest='cpu_mode',
-                        help='Use CPU mode (overrides --gpu)',
-                        action='store_true')
-    parser.add_argument('--net', dest='demo_net', help='Network to use [vgg16]',
-                        choices=NETS.keys(), default='vgg16')
+  """Parse input arguments."""
+  parser = argparse.ArgumentParser(description='Faster R-CNN demo')
+  parser.add_argument('--gpu', dest='gpu_id', help='GPU device id to use [0]',
+                      default=0, type=int)
+  parser.add_argument('--cpu', dest='cpu_mode',
+                      help='Use CPU mode (overrides --gpu)',
+                      action='store_true')
+  parser.add_argument('--net', dest='demo_net', help='Network to use [vgg16]',
+                      choices=NETS.keys(), default='vgg16')
 
-    args = parser.parse_args()
-
-    return args
+  args = parser.parse_args()
 
 if __name__ == '__main__':
   cfg.TEST.HAS_RPN = True  # Use RPN for proposals
@@ -102,9 +98,10 @@ if __name__ == '__main__':
   # para inint
   topk = 5
   # +++++load data, select query: cls, qid
-  data = gl.load_sframe("./data_237.gl")
+  #data = gl.load_sframe("./data_237.gl")
   #small_db = gl.load_sframe("../tools/features_sframe.gl")
   #full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
+  full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   #dfe = gl.load_model("./PLACE.gl")
   cls = list(set(data["cls"]))
   #qid = input(">>> input query id (0~237): ")
