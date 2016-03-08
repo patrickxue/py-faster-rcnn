@@ -33,9 +33,8 @@ def get_topRoI_distance(neighbors, topk=5):
   """get topk RoIs according to distance"""
   dist = np.asarray(neighbors["distance"])
   query_label = np.asarray(neighbors["query_label"])
-  qid_dist = np.vstack((query_label, dist)) 
-  qid_dist
-  roi_id = 
+  idx = dist.argsort(dist)
+  roi_id = query_label[idx][0:topk] 
   topk_rois = neighbors[neighbors.apply(lambda x: True if x["query_label"] in id_score else False)]
   return topk_rois
 
@@ -105,7 +104,7 @@ if __name__ == '__main__':
   # +++++load data, select query: cls, qid
   data = gl.load_sframe("./data_237.gl")
   #small_db = gl.load_sframe("../tools/features_sframe.gl")
-  full_db = gl.load_sframe("./feature_PLACE_db.gl")
+  #full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
   #dfe = gl.load_model("./PLACE.gl")
   cls = list(set(data["cls"]))
   #qid = input(">>> input query id (0~237): ")
