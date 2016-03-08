@@ -111,8 +111,8 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.6):
         dets_nms_all = np.vstack((dets_nms_all,  dets)).astype(np.float32)
         #vis_detections(im, cls, dets, thresh=CONF_THRESH)
     # Calculate CDF with different threshold
-    rois_keep = nms(dets_nms_all, NMS_THRESH_GLOBAL)  # take those with NMS, but might lose some with larger scores due to overlap with another region 
-    #rois_keep = dets_nms_all[:, 4].argsort()[::-1][:50]   # take those with maximum score, but might overlap more
+    #rois_keep = nms(dets_nms_all, NMS_THRESH_GLOBAL)  # take those with NMS, but might lose some with larger scores due to overlap with another region 
+    rois_keep = dets_nms_all[:, 4].argsort()[::-1][:50]   # take those with maximum score, but might overlap more
     rois_nms = dets_nms_all[rois_keep, :]
     CONF_THRESH=np.linspace(0,1,11)
     cdf = get_cdf(rois_nms, CONF_THRESH)

@@ -7,6 +7,7 @@ import argparse
 import ipdb
 import rpn_matching as match
 
+gl.canvas.set_target('ipynb')
 CLASSES = ('__background__',
            'aeroplane', 'bicycle', 'bird', 'boat',
            'bottle', 'bus', 'car', 'cat', 'chair',
@@ -21,26 +22,42 @@ NETS = {'vgg16': ('VGG16',
         'zf': ('ZF',
                   'ZF_faster_rcnn_final.caffemodel')}
 
-def get_topk_match(neighbors, topk=5):
+def get_topRoI_score(neighbors, cand_sf_withScore, topk=5):
   # get topk rois according to roi score
-  neighbors["roi_score"]
+  score = cand_sf_withScore["score"]
+  id_score = get_id(score)  # TODO
+  top_rois = neighbors[neighbors.apply(lambda x: True if  x["query_label"] in id_score else False)] 
   return topk_rois
 
-def join(topk_rois, data):
+def get_topRoI_distance(neighbors, topk=5):
+  """get topk RoIs according to distance"""
+  dist = np.asarray(neighbors["distance"])
+  query_label = np.asarray(neighbors["query_label"])
+  qid_dist = np.vstack((query_label, dist)) 
+  qid_dist
+  roi_id = 
+  topk_rois = neighbors[neighbors.apply(lambda x: True if x["query_label"] in id_score else False)]
+  return topk_rois
+
+def join(topk_rois, qid, data):
   cata_GT = data[qid]["cata"]
   topk_cand = []
   for roi in topk_rois:
-    topk_cand.append(roi["cata"])
+    topk_cand.append(roi["reference_label"])
   matches = inner_join(topk_cand, cata_GT)
   return matches
 
-def demo(net, query, db):
-  neighbors, db_sf, cand_sf = match.demo(net, query, db)
+def demo(net, qid, data, db):
+  query = data[0]["q_img"]
+  neighbors, db_sf, cand_sf_withScore = match.demo(net, query, db)
   neighbors = neighbors.add_row_number()
-  neighbors.print_rows()
-  roi_id = input(">>> input roi_id: ")
-  match.image_join(roi_id, db_sf, cand_sf)
   topk_rois = get_topk_match(neighbors)
+  matches = join(topk_rois, qid, data)
+  neighbors.print_rows()
+  #roi_id = input(">>> input roi_id: ")
+  roi_id = neighbors["query_label"][0] 
+  cand_sf = cand_sf_withScore.remove_column("score")
+  match.image_join(neighbors, db_sf, cand_sf, roi_id)['image'].show()
 
 def parse_args():
     """Parse input arguments."""
@@ -92,5 +109,5 @@ if __name__ == '__main__':
   #dfe = gl.load_model("./PLACE.gl")
   cls = list(set(data["cls"]))
   #qid = input(">>> input query id (0~237): ")
-  query = data[0]["q_img"]
-  demo(net, query, small_db)
+  qid = 0
+  demo(net, qid, data, full_db)
