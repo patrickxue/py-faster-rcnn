@@ -1,6 +1,7 @@
 """end to end IKEA demo using crawled img. Run from the directory py-faster-RCNN/IKEA"""
 import graphlab as gl
 import numpy as np
+import matplotlib.pyplot as plt
 import _init_paths
 from fast_rcnn.config import cfg
 import caffe, os, sys
@@ -43,21 +44,44 @@ def join(topk_rois, qid, data):
   ipdb.set_trace()
   cata_GT = data[qid]["cata"]
   pid_GT = map(lambda x: x["pid"], cata_GT)
-  matches = gl.SFrame({"pid": pid_GT}).join(topk_rois, on="pid", how="inner")
+  matches = gl.SFrame({"pid": pid_GT}).join(topk_rois, on={"pid": "reference_label"}, how="inner")
   return matches
 
+def load_neighbors_features():
+  """load precomputed data, candidate RoIs is generated for query image 0"""
+  neighbors_score = gl.load_sframe("./neighbors_features/neighbors_score.gl") 
+  db_sf = gl.load_sframe("./neighbors_features/db_sf.gl")
+  cand_sf = gl.load_sframe("./neighbors_features/cand_sf_qid=0.gl")
+  return neighbors_score, db_sf, cand_sf
+
+def show_img_list(img_l, col_name="X1"):
+  for img in img_l:
+    img[col_name].show()
+
 def demo(net, qid, data, db):
-  query = data[0]["q_img"]
-  neighbors, db_sf, cand_sf_withScore = match.demo(net, query, db)
+  query = data[qid]["q_img"]
+  neighbors, db_sf, cand_sf = match.demo(net, query, db)
+  #neighbors, db_sf, cand_sf = load_neighbors_features() 
   neighbors = neighbors.add_row_number()
   neighbors.print_rows()
   #roi_id = input(">>> input query_id: ")
   roi_id = neighbors["query_label"][0] 
-  cand_sf = cand_sf_withScore.remove_column("score")
-  match.image_join(neighbors, db_sf, cand_sf, roi_id)['image'].show()
-  # inner join with GT
+  if "score" in cand_sf.column_names():
+    cand_sf = cand_sf.remove_column("score")
+  # join all the neighbors within distance threshold (.6) 
+  #matches_tuple, matched_nn = match.image_join(neighbors, db_sf, cand_sf, roi_id)
+  # show top matches with db
+  topk = len(data[qid]["cata"])  # get the same num of images as in GT
+  topk_rois = get_topRoI_distance(neighbors, topk=topk)
+  matches_db = topk_rois.join(db_sf, on={"reference_label": "pid"}, how="inner")
+  matches_db_sf_l = map(lambda x, y: gl.SFrame([x]).append(gl.SFrame([y])), matches_db["image"], matches_db["image.1"])
   ipdb.set_trace()
-  topk_rois = get_topRoI_distance(neighbors, topk=5)
+  #fig, ax = plt.subplots(figsize=(12, 12))
+  #ax.imshow(query.pixel_data, aspect='equal')
+  gl.SFrame([query])["X1"].show()  # the img is small
+  matches_db["image"].show()  # show RoI crop
+  matches_db["image.1"].show()  # show catalogue img
+  # inner join with GT
   matches = join(topk_rois, qid, data)
   matches.print_rows()
 
@@ -110,6 +134,6 @@ if __name__ == '__main__':
   full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   #dfe = gl.load_model("./PLACE.gl")
   #cls = list(set(data["cls"]))
-  #qid = input(">>> input query id (0~237): ")
-  qid = 0
+  qid = input(">>> input query id (0~237): ")
+  #qid = 0
   demo(net, qid, data, full_db)

@@ -7,7 +7,6 @@ import os
 import pandas as pd
 import ipdb
 
-
 def batch_images(image_path, batch_size):
     #images = glob.glob(image_path + '/*jpg')
     for i in xrange(0, len(images), batch_size):

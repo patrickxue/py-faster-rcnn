@@ -54,17 +54,22 @@ def transform_and_build_nn(cand_sf, dfe, db="./features_sframe.gl", radius=0.51,
     db_sf = db_sf.add_row_number()
     nn = gl.nearest_neighbors.create(db_sf,label="pid", features=['deep_features.image'],distance='cosine')
     neighbors = nn.query(cand_sf,radius=radius,k=k)
-    ipdb.set_trace()
-    neighbors_score = neighbors.join(cand_sf, on="id", how="inner")
+    neighbors_score = neighbors.join(cand_sf, on={"query_label": "id"}, how="inner")
     #neighbors_img = neighbors_score.join(cand_sf, on={"reference_label": "pid"}, how="inner")
     return neighbors_score, db_sf, cand_sf
 
 def image_join(neighbors, db_sf, cand_sf, query_id):
     """"append the matched catalogue img with a query RoI"""
     tmp_nn = neighbors[neighbors['query_label'] == query_id]
-    tmp_db = db_sf.filter_by(tmp_nn['reference_label'], 'id')
-    cand = cand_sf[cand_sf['id'] == query_id]
-    return cand.append(tmp_db)
+    tmp_db = db_sf.filter_by(tmp_nn['reference_label'], 'pid')
+    #name_list = map(lambda x: "db_"+x, tmp_db.column_names())
+    #tmp_nn.add_columns([tmp_db], name_list)
+    matches = gl.SFrame({"matches": [tmp_db]})
+    tmp_nn.add_columns(matches)
+    # access: tmp_nn["matches"][0][0-k]["key"]
+    matched_db = tmp_db["image"]
+    matched_tuple = tmp_nn["image"].append(matched_db)
+    return matched_tuple, tmp_nn 
 
 def save_img_SF(img, rois):
     """save imgs as SFrame"""
@@ -112,9 +117,12 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.6):
         dets_nms_all = np.vstack((dets_nms_all,  dets)).astype(np.float32)
         #vis_detections(im, cls, dets, thresh=CONF_THRESH)
     # Calculate CDF with different threshold
-    rois_keep = nms(dets_nms_all, NMS_THRESH_GLOBAL)  # take those with NMS, but might lose some with larger scores due to overlap with another region 
-    #rois_keep = dets_nms_all[:, 4].argsort()[::-1][:50]   # take those with maximum score, but might overlap more
-    rois_nms = dets_nms_all[rois_keep, :]
+    #rois_keep = nms(dets_nms_all, NMS_THRESH_GLOBAL)  # take those with NMS, but might lose some with larger scores due to overlap with another region 
+    ipdb.set_trace()
+    top_keep = dets_nms_all[:, 4].argsort()[::-1][:500]   # take those with maximum score, but might overlap more
+    rois_top = dets_nms_all[top_keep, :]
+    nms_keep = nms(rois_keep, NMS_THRESH_GLOBAL)
+    rois_nms = rois_keep[nms, :]
     CONF_THRESH=np.linspace(0,1,11)
     cdf = get_cdf(rois_nms, CONF_THRESH)
     rois_sf_withScore = save_img_SF(im, rois_nms)
@@ -123,7 +131,7 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.6):
     alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
     dfe = gl.load_model(alexnet)
     # 28 imgs in the catalogue, calculates c(100)*n(28) = 2800 similarities
-    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, db=db, radius=.6, k=1)
+    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf_withScore, dfe, db=db, radius=.6, k=1)
     if "path" in db_sf.column_names():
       db_sf.remove_column('path')
     return neighbors, db_sf, cand_sf
