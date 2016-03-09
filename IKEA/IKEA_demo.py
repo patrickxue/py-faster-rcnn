@@ -33,29 +33,33 @@ def get_topRoI_score(neighbors, cand_sf_withScore, topk=5):
 def get_topRoI_distance(neighbors, topk=5):
   """get topk RoIs according to distance"""
   dist = np.asarray(neighbors["distance"])
-  query_label = np.asarray(neighbors["query_label"])
+  #query_label = np.asarray(neighbors["query_label"])
   idx = dist.argsort()
-  roi_id = query_label[idx][0:topk] 
-  topk_rois = neighbors[neighbors.apply(lambda x: True if x["query_label"] in roi_id else False)]
+  idx_sf = gl.SFrame({"id": idx})[0:topk]
+  topk_rois = neighbors.join(idx_sf, on="id", how="inner")
   return topk_rois
 
 def join(topk_rois, qid, data):
+  ipdb.set_trace()
   cata_GT = data[qid]["cata"]
-  matches = inner_join(topk_rois, cata_GT)
+  pid_GT = map(lambda x: x["pid"], cata_GT)
+  matches = gl.SFrame({"pid": pid_GT}).join(topk_rois, on="pid", how="inner")
   return matches
 
 def demo(net, qid, data, db):
   query = data[0]["q_img"]
   neighbors, db_sf, cand_sf_withScore = match.demo(net, query, db)
   neighbors = neighbors.add_row_number()
-  ipdb.set_trace()
-  topk_rois = get_topRoI_distance(neighbors, topk=5)
-  matches = join(topk_rois, qid, data)
   neighbors.print_rows()
-  #roi_id = input(">>> input roi_id: ")
+  #roi_id = input(">>> input query_id: ")
   roi_id = neighbors["query_label"][0] 
   cand_sf = cand_sf_withScore.remove_column("score")
   match.image_join(neighbors, db_sf, cand_sf, roi_id)['image'].show()
+  # inner join with GT
+  ipdb.set_trace()
+  topk_rois = get_topRoI_distance(neighbors, topk=5)
+  matches = join(topk_rois, qid, data)
+  matches.print_rows()
 
 def parse_args():
   """Parse input arguments."""

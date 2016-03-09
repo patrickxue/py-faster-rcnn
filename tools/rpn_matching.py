@@ -54,7 +54,10 @@ def transform_and_build_nn(cand_sf, dfe, db="./features_sframe.gl", radius=0.51,
     db_sf = db_sf.add_row_number()
     nn = gl.nearest_neighbors.create(db_sf,label="pid", features=['deep_features.image'],distance='cosine')
     neighbors = nn.query(cand_sf,radius=radius,k=k)
-    return neighbors, db_sf, cand_sf
+    ipdb.set_trace()
+    neighbors_score = neighbors.join(cand_sf, on="id", how="inner")
+    #neighbors_img = neighbors_score.join(cand_sf, on={"reference_label": "pid"}, how="inner")
+    return neighbors_score, db_sf, cand_sf
 
 def image_join(neighbors, db_sf, cand_sf, query_id):
     """"append the matched catalogue img with a query RoI"""
@@ -80,7 +83,7 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.6):
 
     # Load the demo image
     #im_file = os.path.join(cfg.DATA_DIR, 'demo', image_name)
-    if image_name.isinstance(basestring):
+    if isinstance(image_name, basestring):
       im_file = os.path.join(cfg.DATA_DIR, 'demo', 'imgs', image_name)
       im = cv2.imread(im_file)
     else:
@@ -119,8 +122,8 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.6):
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix=feat)
     dfe = gl.load_model('./alexnet.gl')
     # 28 imgs in the catalogue, calculates c(100)*n(28) = 2800 similarities
-    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, db=db, .6, 1)
-    if "path" in db_sf.column_names()
+    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, db=db, radius=.6, k=1)
+    if "path" in db_sf.column_names():
       db_sf.remove_column('path')
     return neighbors, db_sf, cand_sf
 
