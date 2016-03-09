@@ -87,7 +87,7 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.6):
       im_file = os.path.join(cfg.DATA_DIR, 'demo', 'imgs', image_name)
       im = cv2.imread(im_file)
     else:
-      im = gl.Image._to_pil_image(image_name)
+      im = image_name.pixel_data 
 
     # Detect all object classes and regress object bounds
     timer = Timer()
@@ -120,7 +120,8 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.6):
     rois_sf_withScore = save_img_SF(im, rois_nms)
     rois_sf = rois_sf_withScore.remove_column('score')
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix=feat)
-    dfe = gl.load_model('./alexnet.gl')
+    alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
+    dfe = gl.load_model(alexnet)
     # 28 imgs in the catalogue, calculates c(100)*n(28) = 2800 similarities
     neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, db=db, radius=.6, k=1)
     if "path" in db_sf.column_names():
