@@ -15,6 +15,27 @@ def batch_images(image_path, batch_size):
         print "now working on images %d through %d" %(i,i+batch_size)
         yield images[i:i+batch_size]
 
+def extract_features_sf(images)
+    #TODO: deal with gl.Image directly instead of reading from disk
+    net.blobs['data'].data[...] = map(lambda x: transformer.preprocess('data',caffe.io.load_image(x)), images)
+    out = net.forward()
+
+    idxpreds = np.argsort(-out['prob'], axis=1)
+    fc7 = net.blobs['fc7']
+    labels = []
+
+    for i,j in enumerate(idxpreds):
+        labels.append([images[i]])
+
+    labels = np.array(labels)
+    features_with_labels = np.column_stack((labels, fc7.data))
+    df = pd.DataFrame(features_with_labels)
+    df.to_csv('%s_ikea_features_with_labels_%d.csv'%(model,counter),index=False,header=False)
+
+from array import array
+sf['images_array'] = sf['image'].astype(array)
+
+
 def extract_labels_features(images, counter, topk=5):
     #TODO: deal with gl.Image directly instead of reading from disk
     net.blobs['data'].data[...] = map(lambda x: transformer.preprocess('data',caffe.io.load_image(x)), images)

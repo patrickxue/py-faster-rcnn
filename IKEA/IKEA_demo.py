@@ -60,7 +60,7 @@ def show_img_list(img_l, col_name="X1"):
 
 def demo(net, qid, data, db):
   query = data[qid]["q_img"]
-  neighbors, db_sf, cand_sf = match.demo(net, query, db)
+  neighbors, db_sf, cand_sf = match.demo(net, query, db, SCORE_THRESH=100)
   #neighbors, db_sf, cand_sf = load_neighbors_features() 
   neighbors = neighbors.add_row_number()
   neighbors.print_rows()
@@ -69,16 +69,21 @@ def demo(net, qid, data, db):
   # join all the neighbors within distance threshold (.6) 
   #matches_tuple, matched_nn = match.image_join(neighbors, db_sf, cand_sf, roi_id)
   # show top matches with db
-  topk = len(data[qid]["cata"])  # get the same num of images as in GT
+  cata_dic_l = data[qid]["cata"]
+  topk = len(cata_dic_l)  # get the same num of images as in GT
+  topk = 10
   topk_rois = get_topRoI_distance(neighbors, topk=topk)
   matches_db = topk_rois.join(db_sf, on={"reference_label": "pid"}, how="inner")
-  matches_db_sf_l = map(lambda x, y: gl.SFrame([x]).append(gl.SFrame([y])), matches_db["image"], matches_db["image.1"])
+  matches_db_sf_l = map(lambda x, y: gl.SFrame([x]).append(gl.SFrame([y])), matches_db["image"], matches_db["image.1"])  # matched RoI and cata pairs
   ipdb.set_trace()
   #fig, ax = plt.subplots(figsize=(12, 12))
   #ax.imshow(query.pixel_data, aspect='equal')
+  cata_img_sa = gl.SArray(map(lambda x: x["c_img"], cata_dic_l))
+  show_img_list(matches_db_sf_l)
   gl.SFrame([query])["X1"].show()  # the img is small
-  matches_db["image"].show()  # show RoI crop
-  matches_db["image.1"].show()  # show catalogue img
+  cata_img_sa.show()  # ground truth
+  #matches_db["image"].show()  # show RoI crop
+  #matches_db["image.1"].show()  # show catalogue db img
   # inner join with GT
   matches = join(topk_rois, qid, data)
   matches.print_rows()
@@ -128,11 +133,10 @@ if __name__ == '__main__':
   # +++++load data, select query: cls, qid
   data = gl.load_sframe("./data_237.gl")
   #small_db = gl.load_sframe("../tools/features_sframe.gl")
-  full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
-  ipdb.set_trace()
-  #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
+  #full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
+  full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   #dfe = gl.load_model("./PLACE.gl")
   #cls = list(set(data["cls"]))
-  qid = input(">>> input query id (0~237): ")
+  qid = input(">>> input query id (0~236): ")
   #qid = 0
   demo(net, qid, data, full_db)
