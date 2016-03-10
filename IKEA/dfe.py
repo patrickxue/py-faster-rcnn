@@ -8,12 +8,15 @@ import pandas as pd
 import ipdb
 
 def batch_images(image_path, batch_size):
-    #images = glob.glob(image_path + '/*jpg')
+    ipdb.set_trace()
+    #images = glob.glob(image_path + '/*jpg')  # used when input arg is a path
+    images = image_path
     for i in xrange(0, len(images), batch_size):
         print "now working on images %d through %d" %(i,i+batch_size)
         yield images[i:i+batch_size]
 
 def extract_labels_features(images, counter, topk=5):
+    #TODO: deal with gl.Image directly instead of reading from disk
     net.blobs['data'].data[...] = map(lambda x: transformer.preprocess('data',caffe.io.load_image(x)), images)
     out = net.forward()
 
@@ -32,7 +35,7 @@ def extract_labels_features(images, counter, topk=5):
 def load_model(batchsize):
     caffe.set_mode_gpu()
     # setup net with ( structure definition file ) + ( caffemodel ), in test mode
-    net = caffe.Net('./placesCNN/places205CNN_deploy_FC7.prototxt',
+    net = caffe.Net('./placesCNN/places205CNN_deploy.prototxt',
                     './placesCNN/places205CNN_iter_300000.caffemodel', 
                      caffe.TEST)
 
@@ -55,9 +58,9 @@ def load_model(batchsize):
 
 batchsize = 25
 #image_path = '/home/ubuntu/ikea_image_dir'
-images = gl.load_sframe("./cata_db_img.gl")["img"]
-model = 'alexnet_places2'
-#model = 'places205CNN_deploy'
+image_path = gl.load_sframe("./cata_db_img.gl")["img"]
+#model = 'alexnet_places2'
+model = 'places205CNN_deploy'
 counter = 0
 net, transformer = load_model(batchsize)
 failed = []
@@ -66,6 +69,7 @@ ipdb.set_trace()
 for images in batch_images(image_path,batchsize):
     counter+=1
     try:
+    # TODO: get teh return of extracted_features, add to images to form new SFrame({pid, url, img, deepfeatures})
         extract_labels_features(images, counter)
     except:
         failed.append(images)
