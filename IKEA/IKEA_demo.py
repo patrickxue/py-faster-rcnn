@@ -60,30 +60,38 @@ def show_img_list(img_l, col_name="X1"):
 
 def demo(net, qid, data, db):
   query = data[qid]["q_img"]
+  #query = db[100]["image"]
   neighbors, db_sf, cand_sf = match.demo(net, query, db, SCORE_THRESH=100)
   #neighbors, db_sf, cand_sf = load_neighbors_features() 
   neighbors = neighbors.add_row_number()
   neighbors.print_rows()
-  #roi_id = input(">>> input query_id: ")
   roi_id = neighbors["query_label"][0] 
   # join all the neighbors within distance threshold (.6) 
-  #matches_tuple, matched_nn = match.image_join(neighbors, db_sf, cand_sf, roi_id)
   # show top matches with db
   cata_dic_l = data[qid]["cata"]
   topk = len(cata_dic_l)  # get the same num of images as in GT
   topk = 10
   topk_rois = get_topRoI_distance(neighbors, topk=topk)
-  matches_db = topk_rois.join(db_sf, on={"reference_label": "pid"}, how="inner")
-  matches_db_sf_l = map(lambda x, y: gl.SFrame([x]).append(gl.SFrame([y])), matches_db["image"], matches_db["image.1"])  # matched RoI and cata pairs
+  topk_rois.print_rows(max_column_width=20)
   ipdb.set_trace()
+  # topk_group: SFrame with query_label and nearest neighbor list
+  #topk_group = topk_rois.groupby(["query_label"], {"nn_l": gl.aggregate.CONCAT("reference_label")})
+  matches_db = topk_rois.join(db_sf, on={"reference_label": "pid"}, how="inner")
+  matches_roi_l = []
+  for roi in set(matches_db["query_label"]):
+    matches_roi = matches_db[matches_db["query_label"] == roi]
+    matches_img_sa = gl.SArray(map(lambda x: x["image.1"], matches_roi))
+    roi_cata_sa = gl.SArray([matches_roi["image"][0]]).append(matches_img_sa)
+    roi_cata_sa.show()  # show crop and matched cata img
+    matches_roi_l.append(matches_roi)
+  #matches_db_sf_l = map(lambda x, y: gl.SFrame([x]).append(gl.SFrame([y])), matches_db["image"], matches_db["image.1"])  # matched RoI and cata pairs
   #fig, ax = plt.subplots(figsize=(12, 12))
   #ax.imshow(query.pixel_data, aspect='equal')
   cata_img_sa = gl.SArray(map(lambda x: x["c_img"], cata_dic_l))
-  show_img_list(matches_db_sf_l)
+  #show_img_list(matches_db_sf_l)
   gl.SFrame([query])["X1"].show()  # the img is small
   cata_img_sa.show()  # ground truth
-  #matches_db["image"].show()  # show RoI crop
-  #matches_db["image.1"].show()  # show catalogue db img
+  ipdb.set_trace()
   # inner join with GT
   matches = join(topk_rois, qid, data)
   matches.print_rows()

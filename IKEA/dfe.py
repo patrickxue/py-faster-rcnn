@@ -35,7 +35,6 @@ def extract_features_sf(images)
 from array import array
 sf['images_array'] = sf['image'].astype(array)
 
-
 def extract_labels_features(images, counter, topk=5):
     #TODO: deal with gl.Image directly instead of reading from disk
     net.blobs['data'].data[...] = map(lambda x: transformer.preprocess('data',caffe.io.load_image(x)), images)
