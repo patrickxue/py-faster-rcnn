@@ -17,7 +17,6 @@ def batch_images(image_path, batch_size):
 
 def extract_labels_features(images, counter, net, transformer, topk=5):
     #TODO: deal with gl.Image directly instead of reading from disk
-    ipdb.set_trace()
     net.blobs['data'].data[...] = map(lambda x: transformer.preprocess('data',caffe.io.load_image(x)), images)
     out = net.forward()
 

@@ -67,11 +67,18 @@ def demo(net, qid, data, db):
   cata_dic_l = data[qid]["cata"]
   topk = 3*len(cata_dic_l)  # get the same num of images as in GT
   topk_rois = get_topRoI_distance(neighbors, topk=topk)
-  topk_rois.print_rows(max_column_width=20)
+  #topk_rois.print_rows(max_column_width=20)
+  crop_img = gl.image_analysis.load_images("./crop_buff/")
+  id = map(lambda x: int(x["path"].split("/")[-1].split(".")[0].split("_")[1]), crop_img)
+  crop_img["id"] = id
+  #crop_img.remove_column("path")
+  topk_rois = topk_rois.join(crop_img, on={"query_label": "id"}, how="inner")
+
   #topk = 10
   # topk_group: SFrame with query_label and nearest neighbor list
   #topk_group = topk_rois.groupby(["query_label"], {"nn_l": gl.aggregate.CONCAT("reference_label")})
-  matches_db = topk_rois.join(db_sf, on={"reference_label": "pid"}, how="inner")
+  db_img = gl.load_sframe("./cata_db_image.gl")
+  matches_db = topk_rois.join(db_img, on={"reference_label": "pid"}, how="inner")
   matches_roi_l = []
   for roi in set(matches_db["query_label"]):
     matches_roi = matches_db[matches_db["query_label"] == roi]
@@ -140,6 +147,6 @@ if __name__ == '__main__':
   #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   #dfe = gl.load_model("./PLACE.gl")
   #cls = list(set(data["cls"]))
-  #qid = input(">>> input query id (0~236): ")
-  qid = 0
+  qid = input(">>> input query id (0~236): ")
+  #qid = 0
   demo(net, qid, data, full_db)

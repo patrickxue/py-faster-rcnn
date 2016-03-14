@@ -62,11 +62,14 @@ def transform_and_build_nn(cand_sf, num_rois,  dfe="alexnet", db="./features_sfr
       cand_sf  = mdfe.ext_feat(cand_sf, batchsize=num_rois)
       cand_sf.rename({"features": "deep_features.image"})
     cand_sf = cand_sf.add_row_number()
+    id = map(lambda x: int(x["labels"].split("/")[-1].split(".")[0].split("_")[1]), cand_sf)
+    cand_sf["id"] = id
     db_sf = gl.SFrame(db)
     db_sf = db_sf.add_row_number()
-    ipdb.set_trace()
+    pid = map(lambda x: x["filename"].split("/")[-1].split(".")[0], db_sf)
+    db_sf["pid"] = pid
     # use label="pid" to include pid in nn
-    nn = gl.nearest_neighbors.create(db_sf, features=['deep_features.image'],distance='cosine')
+    nn = gl.nearest_neighbors.create(db_sf, label="pid", features=['deep_features.image'],distance='cosine')
     #nn = gl.nearest_neighbors.create(db_sf,label="pid", features=['deep_features.image'],distance='cosine')
     neighbors = nn.query(cand_sf,radius=radius,k=k)
     #neighbors_score = neighbors.join(cand_sf, on={"query_label": "id"}, how="inner")
@@ -157,7 +160,8 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCOR
     #roi_sf = gl.image_analysis.load_image("./")
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix=feat)
     # 28 imgs in the catalogue, calculates c(100)*n(28) = 2800 similarities
-    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, rois_nms.shape[0], dfe, db=db, radius=.55, k=3)
+    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, rois_nms.shape[0], dfe, db=db, radius=0.7, k=3)
+    neighbors = neighbors.join(cand_sf, on={"query_label": "id"}, how="inner")
     if "path" in db_sf.column_names():
       db_sf.remove_column('path')
     return neighbors, db_sf, cand_sf
