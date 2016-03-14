@@ -91,6 +91,7 @@ def image_join(neighbors, db_sf, cand_sf, query_id):
 
 def save_img_disk(img, rois):
     """save imgs as SFrame"""
+    os.mkdir("./crop_buff")
     cnt = 0
     for roi in rois:    
         #cropped = img[y:y+h, x:x+w, :]

@@ -6,6 +6,7 @@ import _init_paths
 from fast_rcnn.config import cfg
 import caffe, os, sys
 import argparse
+import shutil
 import ipdb
 import rpn_matching as match
 
@@ -69,6 +70,7 @@ def demo(net, qid, data, db):
   topk_rois = get_topRoI_distance(neighbors, topk=topk)
   #topk_rois.print_rows(max_column_width=20)
   crop_img = gl.image_analysis.load_images("./crop_buff/")
+  shutil.rmtree("./crop_buff")
   id = map(lambda x: int(x["path"].split("/")[-1].split(".")[0].split("_")[1]), crop_img)
   crop_img["id"] = id
   #crop_img.remove_column("path")
