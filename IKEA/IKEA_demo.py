@@ -68,7 +68,7 @@ def demo(net, qid, data, db):
   topk = 3*len(cata_dic_l)  # get the same num of images as in GT
   topk_rois = get_topRoI_distance(neighbors, topk=topk)
   topk_rois.print_rows(max_column_width=20)
-  topk = 10
+  #topk = 10
   # topk_group: SFrame with query_label and nearest neighbor list
   #topk_group = topk_rois.groupby(["query_label"], {"nn_l": gl.aggregate.CONCAT("reference_label")})
   matches_db = topk_rois.join(db_sf, on={"reference_label": "pid"}, how="inner")

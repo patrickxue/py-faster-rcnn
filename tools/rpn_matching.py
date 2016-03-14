@@ -52,7 +52,7 @@ def get_cdf(dets_nms_all, CONF_THRESH=np.linspace(0,1,11)):
         cdf = cdf.append(gl.SFrame({"conf": [conf], "num_rois": [num_rois]})) 
     return cdf
 
-def transform_and_build_nn(cand_sf, num_rois,  dfe="alexnet", db="./features_sframe.gl", radius=0.51, k=1):   
+def transform_and_build_nn(cand_sf, num_rois,  dfe="alexnet", db="./features_sframe.gl", radius=0.8, k=1):   
     if dfe=="alexnet": 
       model = "~/py-faster-rcnn/tools/alexnet.gl"
       dfe = gl.load_model(model)
@@ -60,10 +60,12 @@ def transform_and_build_nn(cand_sf, num_rois,  dfe="alexnet", db="./features_sfr
     if dfe=="PLACES":
       db.rename({"features": "deep_features.image"})
       cand_sf  = mdfe.ext_feat(cand_sf, batchsize=num_rois)
+      cand_sf.rename({"features": "deep_features.image"})
     cand_sf = cand_sf.add_row_number()
     db_sf = gl.SFrame(db)
     db_sf = db_sf.add_row_number()
     ipdb.set_trace()
+    # use label="pid" to include pid in nn
     nn = gl.nearest_neighbors.create(db_sf, features=['deep_features.image'],distance='cosine')
     #nn = gl.nearest_neighbors.create(db_sf,label="pid", features=['deep_features.image'],distance='cosine')
     neighbors = nn.query(cand_sf,radius=radius,k=k)
