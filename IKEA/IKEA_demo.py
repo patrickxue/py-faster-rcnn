@@ -74,9 +74,7 @@ def demo(net, qid, data, db):
   id = map(lambda x: int(x["path"].split("/")[-1].split(".")[0].split("_")[1]), crop_img)
   crop_img["id"] = id
   #crop_img.remove_column("path")
-  topk_rois = topk_rois.join(crop_img, on={"query_label": "id"}, how="inner")
-
-  #topk = 10
+  topk_rois = topk_rois.join(crop_img, on={"query_label": "id"}, how="inner") # append the image bytes
   # topk_group: SFrame with query_label and nearest neighbor list
   #topk_group = topk_rois.groupby(["query_label"], {"nn_l": gl.aggregate.CONCAT("reference_label")})
   db_img = gl.load_sframe("./cata_db_image.gl")

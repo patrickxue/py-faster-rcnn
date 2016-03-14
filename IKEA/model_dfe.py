@@ -37,9 +37,13 @@ def extract_labels_features(images, counter, net, transformer, topk=5):
 def load_model(batchsize):
     caffe.set_mode_gpu()
     # setup net with ( structure definition file ) + ( caffemodel ), in test mode
-    net = caffe.Net('./placesCNN/places205CNN_deploy.prototxt',
-                    './placesCNN/places205CNN_iter_300000.caffemodel', 
+    net = caffe.Net('./googlenet_places205/deploy_places205.protxt',
+                    './googlenet_places205/googlelet_places205_train_iter_2400000.caffemodel', 
                      caffe.TEST)
+
+    #net = caffe.Net('./placesCNN/places205CNN_deploy.prototxt',
+    #                './placesCNN/places205CNN_iter_300000.caffemodel', 
+    #                 caffe.TEST)
 
     # add preprocessing
     transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
@@ -77,4 +81,4 @@ def ext_feat(image_path="./crop_buff", batchsize=25):
             print "failed on counter: %d" %counter
             continue
 
-    return features_sf 
+    return features_sf
