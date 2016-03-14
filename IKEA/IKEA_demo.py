@@ -41,7 +41,6 @@ def get_topRoI_distance(neighbors, topk=5):
   return topk_rois
 
 def join(topk_rois, qid, data):
-  ipdb.set_trace()
   cata_GT = data[qid]["cata"]
   pid_GT = map(lambda x: x["pid"], cata_GT)
   matches = gl.SFrame({"pid": pid_GT}).join(topk_rois, on={"pid": "reference_label"}, how="inner")
@@ -65,15 +64,11 @@ def demo(net, qid, data, db):
   #neighbors, db_sf, cand_sf = load_neighbors_features() 
   neighbors = neighbors.add_row_number()
   neighbors.print_rows()
-  roi_id = neighbors["query_label"][0] 
-  # join all the neighbors within distance threshold (.6) 
-  # show top matches with db
   cata_dic_l = data[qid]["cata"]
-  topk = len(cata_dic_l)  # get the same num of images as in GT
-  topk = 10
+  topk = 3*len(cata_dic_l)  # get the same num of images as in GT
   topk_rois = get_topRoI_distance(neighbors, topk=topk)
   topk_rois.print_rows(max_column_width=20)
-  ipdb.set_trace()
+  topk = 10
   # topk_group: SFrame with query_label and nearest neighbor list
   #topk_group = topk_rois.groupby(["query_label"], {"nn_l": gl.aggregate.CONCAT("reference_label")})
   matches_db = topk_rois.join(db_sf, on={"reference_label": "pid"}, how="inner")
@@ -141,10 +136,10 @@ if __name__ == '__main__':
   # +++++load data, select query: cls, qid
   data = gl.load_sframe("./data_237.gl")
   #small_db = gl.load_sframe("../tools/features_sframe.gl")
-  #full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
-  full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
+  full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
+  #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   #dfe = gl.load_model("./PLACE.gl")
   #cls = list(set(data["cls"]))
-  qid = input(">>> input query id (0~236): ")
-  #qid = 0
+  #qid = input(">>> input query id (0~236): ")
+  qid = 0
   demo(net, qid, data, full_db)
