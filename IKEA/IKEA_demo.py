@@ -148,6 +148,5 @@ if __name__ == '__main__':
   full_db = gl.load_sframe("./features_GoogLeNet_PLACES_db.gl")  # only contain features
   #dfe = gl.load_model("./PLACE.gl")
   #cls = list(set(data["cls"]))
-  #qid = input(">>> input query id (0~236): ")
-  qid = 0
+  qid = input(">>> input query id (0~236): ")
   demo(net, qid, data, full_db)
