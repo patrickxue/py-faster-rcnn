@@ -28,8 +28,9 @@ NETS = {'vgg16': ('VGG16',
 def get_topRoI_score(neighbors, cand_sf_withScore, topk=5):
   # get topk rois according to roi score
   score = cand_sf_withScore["score"]
-  id_score = get_id(score)  # TODO
-  top_rois = neighbors[neighbors.apply(lambda x: True if  x["query_label"] in id_score else False)] 
+  idx = score.argsort()
+  idx_sf = gl.SFrame({"id": idx})[0:topk]
+  topk_rois = neighbors.join(idx_sf, on="id", how="inner")
   return topk_rois
 
 def get_topRoI_distance(neighbors, topk=5):
@@ -61,7 +62,9 @@ def show_img_list(img_l, col_name="X1"):
 def demo(net, qid, data, db):
   query = data[qid]["q_img"]
   #query = db[100]["image"]
-  neighbors, db_sf, cand_sf = match.demo(net, query, db, SCORE_THRESH=100)
+  SCORE_THRESH = 500 
+  print "SCORE_THRESH: %d" %SCORE_THRESH 
+  neighbors, db_sf, cand_sf = match.demo(net, query, db, SCORE_THRESH=SCORE_THRESH)
   #neighbors, db_sf, cand_sf = load_neighbors_features() 
   neighbors = neighbors.add_row_number()
   neighbors.print_rows()
