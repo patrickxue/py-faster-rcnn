@@ -61,10 +61,9 @@ def load_model(batchsize):
     net.blobs['data'].reshape(batchsize, data_blob_shape[1], data_blob_shape[2], data_blob_shape[3])
     return net, transformer
 
-#batchsize = 25
-#image_path = '/home/ubuntu/ikea_image_dir'
-#image_path = gl.load_sframe("./cata_db_img.gl")["img"]
-model = 'alexnet_places2'
+#model = 'alexnet_places2'
+model = "googlenet_places2"
+#layer="pool5/7x7_s1"
 counter = 0
 failed = []
 # dump img

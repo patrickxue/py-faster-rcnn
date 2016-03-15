@@ -59,7 +59,9 @@ def transform_and_build_nn(cand_sf, num_rois,  dfe="alexnet", db="./features_sfr
       cand_sf = dfe.transform(cand_sf)
     if dfe=="PLACES":
       db.rename({"features": "deep_features.image"})
-      cand_sf  = mdfe.ext_feat(cand_sf, batchsize=num_rois)
+      ipdb.set_trace()
+      cand_sf  = mdfe.ext_feat(cand_sf, layer="pool5/7x7_s1", batchsize=num_rois)
+      #cand_sf  = mdfe.ext_feat(cand_sf, batchsize=num_rois)  # layer="fc7" for AlexNet
       cand_sf.rename({"features": "deep_features.image"})
     cand_sf = cand_sf.add_row_number()
     id = map(lambda x: int(x["labels"].split("/")[-1].split(".")[0].split("_")[1]), cand_sf)
@@ -90,6 +92,9 @@ def image_join(neighbors, db_sf, cand_sf, query_id):
 
 def save_img_disk(img, rois):
     """save imgs as SFrame"""
+    if os.path.exists("./crop_buff"):
+      import shutil
+      shutil.rmtree("./crop_buff")
     os.mkdir("./crop_buff")
     cnt = 0
     for roi in rois:    
