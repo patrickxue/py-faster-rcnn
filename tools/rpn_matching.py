@@ -73,7 +73,6 @@ def transform_and_build_nn(cand_sf, num_rois,  dfe="alexnet", db="./features_sfr
     nn = gl.nearest_neighbors.create(db_sf, label="pid", features=['deep_features.image'],distance='cosine')
     neighbors = nn.query(cand_sf,radius=radius,k=k)
     #neighbors_score = neighbors.join(cand_sf, on={"query_label": "id"}, how="inner")
-    #neighbors_img = neighbors_score.join(cand_sf, on={"reference_label": "pid"}, how="inner")
     return neighbors, db_sf, cand_sf
 
 def image_join(neighbors, db_sf, cand_sf, query_id):

@@ -14,14 +14,13 @@ def batch_images(image_path, batch_size):
         print "now working on images %d through %d" %(i,i+batch_size)
         yield images[i:i+batch_size]
 
-
-def extract_labels_features(images, counter, net, transformer, topk=5):
+def extract_labels_features(images, counter, net, transformer, layer="fc7", topk=5):
     #TODO: deal with gl.Image directly instead of reading from disk
     net.blobs['data'].data[...] = map(lambda x: transformer.preprocess('data',caffe.io.load_image(x)), images)
     out = net.forward()
 
     idxpreds = np.argsort(-out['prob'], axis=1)
-    fc7 = net.blobs['fc7']
+    fc7 = net.blobs[layer]
     labels = []
 
     for i,j in enumerate(idxpreds):
@@ -29,7 +28,7 @@ def extract_labels_features(images, counter, net, transformer, topk=5):
 
     labels = np.array(labels)
     #features_with_labels = np.column_stack((labels, fc7.data))
-    feat_lab_sf = gl.SFrame({"labels": labels, "features": fc7.data})
+    feat_lab_sf = gl.SFrame({"labels": labels, "features": fc7.data.reshape(labels.shape[0], -1)})
     return feat_lab_sf
     #df = pd.DataFrame(features_with_labels)
     #df.to_csv('%s_ikea_features_with_labels_%d.csv'%(model,counter),index=False,header=False)
@@ -68,17 +67,38 @@ def load_model(batchsize):
 model = 'alexnet_places2'
 counter = 0
 failed = []
+# dump img
+#db_sf = gl.load_sframe("./cata_db_image.gl")
+#map(lambda x: scipy.misc.imsave("./cata_db_img/%s.jpg" %x["pid"], x["image"].pixel_data), db_sf)
 
-def ext_feat(image_path="./crop_buff", batchsize=25):
+def dump_img():
+    db_sf = gl.load_sframe("./cata_db_image.gl")
+    import scipy
+    for entry in db_sf:
+        img = entry["image"] 
+        pid = entry["pid"]
+        scipy.io.imsave("./cata_db_img/%s.jpg" %pid) 
+
+def ext_feat(image_path="./crop_buff", layer="fc7", batchsize=25):
+    features_all = gl.SFrame()
     net, transformer = load_model(batchsize)
     for images in batch_images(image_path,batchsize):
         global counter
         counter += 1
         try:
-            features_sf  = extract_labels_features(images, counter, net, transformer)
+            features_sf  = extract_labels_features(images, counter, net, transformer, layer=layer)
+            features_all = features_all.append(features_sf)
         except:
             failed.append(images)
             print "failed on counter: %d" %counter
             continue
 
-    return features_sf
+    return features_all
+
+if __name__ == "__main__":
+   global model
+   #features_all  = ext_feat(image_path="./cata_db_img")
+   # for googlenet_inception model
+   model = "googlenet_places2"
+   features_all  = ext_feat(image_path="./cata_db_img", layer="pool5/7x7_s1")
+   features_all.save("./features_GoogLeNet_PLACES_db.gl")
