@@ -58,20 +58,17 @@ def transform_and_build_nn(cand_sf, num_rois,  dfe="alexnet", db="./features_sfr
       dfe = gl.load_model(model)
       cand_sf = dfe.transform(cand_sf)
     if dfe=="PLACES":
-      db.rename({"features": "deep_features.image"})
-      ipdb.set_trace()
+      if "features" in db.column_names():
+        db.rename({"features": "deep_features.image"})
       cand_sf  = mdfe.ext_feat(cand_sf, layer="pool5/7x7_s1", batchsize=num_rois)
       #cand_sf  = mdfe.ext_feat(cand_sf, batchsize=num_rois)  # layer="fc7" for AlexNet
       cand_sf.rename({"features": "deep_features.image"})
-    cand_sf = cand_sf.add_row_number()
     id = map(lambda x: int(x["labels"].split("/")[-1].split(".")[0].split("_")[1]), cand_sf)
     cand_sf["id"] = id
     db_sf = gl.SFrame(db)
-    db_sf = db_sf.add_row_number()
     pid = map(lambda x: x["filename"].split("/")[-1].split(".")[0], db_sf)
     db_sf["pid"] = pid
     # use label="pid" to include pid in nn
-    ipdb.set_trace()
     nn = gl.nearest_neighbors.create(db_sf, label="pid", features=['deep_features.image'],distance='cosine')
     neighbors = nn.query(cand_sf,radius=radius,k=k)
     #neighbors_score = neighbors.join(cand_sf, on={"query_label": "id"}, how="inner")
