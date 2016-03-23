@@ -129,7 +129,8 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCOR
     cdf = get_cdf(rois_nms, CONF_THRESH)
     rois_sf_withScore = save_img_SF(im, rois_nms)
     #rois_sf = rois_sf_withScore.remove_column('score')
-    #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix=feat)
+    #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix="deep_features")
+    #dfe.save("./alexnet.gl")
     alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
     dfe = gl.load_model(alexnet)
     # 28 imgs in the catalogue, calculates c(100)*n(28) = 2800 similarities

@@ -117,9 +117,9 @@ if __name__ == '__main__':
 
   prototxt = os.path.join(cfg.MODELS_DIR, NETS[args.demo_net][0],
                           'faster_rcnn_alt_opt', 'faster_rcnn_test.pt')
-  #caffemodel = os.path.join(cfg.DATA_DIR, 'faster_rcnn_models',
-  #                          NETS[args.demo_net][1])
-  caffemodel = os.path.join(cfg.DATA_DIR, '../output/faster_rcnn_end2end/voc_2007_trainval/vgg16_faster_rcnn_iter_70000.caffemodel')
+  caffemodel = os.path.join(cfg.DATA_DIR, 'faster_rcnn_models',
+                            NETS[args.demo_net][1])
+  #caffemodel = os.path.join(cfg.DATA_DIR, '../output/faster_rcnn_end2end/voc_2007_trainval/vgg16_faster_rcnn_iter_70000.caffemodel')
   #caffemodel = os.path.join(cfg.DATA_DIR, '../output/LSDA_200_strong_detector_finetune_ilsvrc13_val1+train1k_iter_50000.caffemodel')
   #cfg.TEST.HAS_RPN = False # Use RPN for proposals
 
@@ -145,6 +145,6 @@ if __name__ == '__main__':
   full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   #dfe = gl.load_model("./PLACE.gl")
   #cls = list(set(data["cls"]))
-  qid = input(">>> input query id (0~236): ")
-  #qid = 0
+  #qid = input(">>> input query id (0~236): ")
+  qid = 0
   demo(net, qid, data, full_db)
