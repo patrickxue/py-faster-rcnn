@@ -76,16 +76,18 @@ def image_join(neighbors, db_sf, cand_sf, query_id):
 def save_img_SF_scale(img, rois, scale=0):
     """save imgs as SFrame"""
     cand_sf = gl.SFrame()
-    ipdb.set_trace()
-    (H, W, C)= img.shape()
+    (H, W, C)= img.shape
     for roi in rois:    
         #cropped = img[y:y+h, x:x+w, :]
+        (x, y, x1, y1) = roi[0:4]
         h = roi[3] - roi[1]
         w = roi[2] - roi[0]
-        y = max(roi[1] - scale/2.0 * h, 0)
-        x = max(roi[0] - scale/2.0 * w, 0)
-        y1 = min(roi[3] + scale/2.0 * h, H)
-        x1 = min(roi[0] + scale/2.0 * w, W)
+        if h < 0.25*H:
+          y = max(roi[1] - scale/2.0 * h, 0)
+          y1 = min(roi[3] + scale/2.0 * h, H)
+        if w < 0.25*W:
+          x = max(roi[0] - scale/2.0 * w, 0)
+          x1 = min(roi[0] + scale/2.0 * w, W)
         cropped = img[y:y1, x:x1, :]
         #cropped = img[roi[1]:roi[3], roi[0]:roi[2], :]
         cropped_img = PIL2gl.from_pil_image(Image.fromarray(cropped))
@@ -148,7 +150,8 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCOR
     rois_nms = rois_top[nms_keep, :]
     CONF_THRESH=np.linspace(0,1,11)
     cdf = get_cdf(rois_nms, CONF_THRESH)
-    rois_sf_withScore = save_img_SF(im, rois_nms)
+    #rois_sf_withScore = save_img_SF(im, rois_nms)
+    rois_sf_withScore = save_img_SF_scale(im, rois_nms, scale=1.0)
     #rois_sf = rois_sf_withScore.remove_column('score')
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix="deep_features")
     #dfe.save("./alexnet.gl")

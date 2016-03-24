@@ -41,11 +41,13 @@ def get_topRoI_distance(neighbors, topk=5):
   return topk_rois
 
 def join(topk_rois, qid, data):
-  ipdb.set_trace()
   cata_GT = data[qid]["cata"]
   pid_GT = map(lambda x: x["pid"], cata_GT)
   matches = gl.SFrame({"pid": pid_GT}).join(topk_rois, on={"pid": "reference_label"}, how="inner")
-  return matches
+  #TODO: enlarge topk_rois pid by set by different color
+  ipdb.set_trace()
+  recall = mactches.__len__()/len(pid_GT)
+  return matches, recall
 
 def load_neighbors_features():
   """load precomputed data, candidate RoIs is generated for query image 0"""
@@ -92,7 +94,7 @@ def demo(net, qid, data, db):
   cata_img_sa.show()  # ground truth
   ipdb.set_trace()
   # inner join with GT
-  matches = join(topk_rois, qid, data)
+  matches, recall = join(topk_rois, qid, data)
   matches.print_rows()
 
 def parse_args():
@@ -145,5 +147,6 @@ if __name__ == '__main__':
   full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   #dfe = gl.load_model("./PLACE.gl")
   #cls = list(set(data["cls"]))
-  qid = input(">>> input query id (0~236): ")
+  #qid = input(">>> input query id (0~236): ")
+  qid = 0
   demo(net, qid, data, full_db)
