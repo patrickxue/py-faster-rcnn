@@ -71,8 +71,7 @@ def demo(net, qid, data, db):
   # join all the neighbors within distance threshold (.6) 
   # show top matches with db
   cata_dic_l = data[qid]["cata"]
-  topk = len(cata_dic_l)  # get the same num of images as in GT
-  topk = 10
+  topk = 3 * len(cata_dic_l)  # get the same num of images as in GT
   topk_rois = get_topRoI_distance(neighbors, topk=topk)
   topk_rois.print_rows(max_column_width=20)
   # topk_group: SFrame with query_label and nearest neighbor list
@@ -147,6 +146,5 @@ if __name__ == '__main__':
   full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   #dfe = gl.load_model("./PLACE.gl")
   #cls = list(set(data["cls"]))
-  #qid = input(">>> input query id (0~236): ")
-  qid = 0
+  qid = input(">>> input query id (0~236): ")
   demo(net, qid, data, full_db)
