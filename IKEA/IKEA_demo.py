@@ -45,7 +45,6 @@ def join(topk_rois, qid, data):
   pid_GT = map(lambda x: x["pid"], cata_GT)
   matches = gl.SFrame({"pid": pid_GT}).join(topk_rois, on={"pid": "reference_label"}, how="inner")
   #TODO: enlarge topk_rois pid by set by different color
-  ipdb.set_trace()
   recall = mactches.__len__()/len(pid_GT)
   return matches, recall
 
@@ -63,7 +62,7 @@ def show_img_list(img_l, col_name="X1"):
 def demo(net, qid, data, db):
   query = data[qid]["q_img"]
   #query = db[100]["image"]
-  neighbors, db_sf, cand_sf = match.demo(net, query, db, SCORE_THRESH=100)
+  neighbors, db_sf, cand_sf = match.demo(net, query, db, NMS_THRESH_GLOBAL=0.4, SCORE_THRESH=100)
   #neighbors, db_sf, cand_sf = load_neighbors_features()
   neighbors = neighbors.add_row_number()
   neighbors.print_rows()
@@ -142,6 +141,6 @@ if __name__ == '__main__':
   #full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
   #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   full_db = gl.load_sframe("./feature_AlexNet_ImageNet_cropped.gl")  # only contain features
-  #qid = input(">>> input query id (0~236): ")
-  qid = 0
+  qid = input(">>> input query id (0~236): ")
+  #qid = 0
   demo(net, qid, data, full_db)
