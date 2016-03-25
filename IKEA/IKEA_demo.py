@@ -143,7 +143,8 @@ if __name__ == '__main__':
   data = gl.load_sframe("./data_237.gl")
   #small_db = gl.load_sframe("../tools/features_sframe.gl")
   #full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
-  full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
+  #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
+  full_db = gl.load_sframe("./feature_AlexNet_ImageNet_cropped.gl")  # only contain features
   #dfe = gl.load_model("./PLACE.gl")
   #cls = list(set(data["cls"]))
   qid = input(">>> input query id (0~236): ")
