@@ -84,4 +84,4 @@ ITEM_PIPELINES = {
 #HTTPCACHE_IGNORE_HTTP_CODES=[]
 #HTTPCACHE_STORAGE='scrapy.extensions.httpcache.FilesystemCacheStorage'
 #FILES_STORE = '/home/xeraph/py-faster-rcnn/IKEA/catalogue_pid_img'
-FILES_STORE = '~/py-faster-rcnn/IKEA/catalogue_pid_synset_img'
+FILES_STORE = '~/py-faster-rcnn/IKEA/catalogue_synset_img'

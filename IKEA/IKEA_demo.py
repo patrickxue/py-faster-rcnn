@@ -43,10 +43,21 @@ def get_topRoI_distance(neighbors, topk=5):
 def join(topk_rois, qid, data):
   cata_GT = data[qid]["cata"]
   pid_GT = map(lambda x: x["pid"], cata_GT)
-  matches = gl.SFrame({"pid": pid_GT}).join(topk_rois, on={"pid": "reference_label"}, how="inner")
-  #TODO: enlarge topk_rois pid by set by different color
-  recall = mactches.__len__()/len(pid_GT)
-  return matches, recall
+  ipdb.set_trace()
+  reference_label = topk_rois["reference_label"]
+  synset = load_sframe("./synset_clean.gl")["synset"]
+  syn_id = map(lambda x: [x_i.strip("cart") for x_i in x], synset)
+  refer_syn = []   # enlarged matched reference set
+  for id in reference_label:
+    refer_syn.append(id)
+    for syn in syn_id:
+      if id in syn:
+        refer_syn.append(syn)
+  #matches = gl.SFrame({"pid": pid_GT}).join(topk_rois, on={"pid": "reference_label"}, how="inner")
+  matches = set(pid_GT).intersection(refer_syn)
+  recall = len(matches)
+  recall_rate = recall/len(pid_GT)
+  return matches, recall, recall_rate
 
 def load_neighbors_features():
   """load precomputed data, candidate RoIs is generated for query image 0"""
@@ -89,7 +100,7 @@ def demo(net, qid, data, db):
   cata_img_sa.show()  # ground truth
   ipdb.set_trace()
   # inner join with GT
-  matches, recall = join(topk_rois, qid, data)
+  matches, recall, recall_rate = join(topk_rois, qid, data)
   matches.print_rows()
 
 def parse_args():
