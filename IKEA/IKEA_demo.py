@@ -45,16 +45,16 @@ def join(topk_rois, qid, data):
   pid_GT = map(lambda x: x["pid"], cata_GT)
   ipdb.set_trace()
   reference_label = topk_rois["reference_label"]
-  synset = load_sframe("./synset_clean.gl")["synset"]
+  synset = gl.load_sframe("./synset_clean.gl")["synset"]
   syn_id = map(lambda x: [x_i.strip("cart") for x_i in x], synset)
   refer_syn = []   # enlarged matched reference set
   for id in reference_label:
     refer_syn.append(id)
     for syn in syn_id:
       if id in syn:
-        refer_syn.append(syn)
+        refer_syn.extend(syn)
   #matches = gl.SFrame({"pid": pid_GT}).join(topk_rois, on={"pid": "reference_label"}, how="inner")
-  matches = set(pid_GT).intersection(refer_syn)
+  matches = set(pid_GT).intersection(set(refer_syn))
   recall = len(matches)
   recall_rate = recall/len(pid_GT)
   return matches, recall, recall_rate
@@ -98,10 +98,9 @@ def demo(net, qid, data, db):
   #show_img_list(matches_db_sf_l)
   gl.SFrame([query])["X1"].show()  # the img is small
   cata_img_sa.show()  # ground truth
-  ipdb.set_trace()
-  # inner join with GT
   matches, recall, recall_rate = join(topk_rois, qid, data)
-  matches.print_rows()
+  ipdb.set_trace()
+  #matches.print_rows()
 
 def parse_args():
   """Parse input arguments."""
@@ -152,6 +151,14 @@ if __name__ == '__main__':
   #full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
   #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   full_db = gl.load_sframe("./feature_AlexNet_ImageNet_cropped.gl")  # only contain features
+  ipdb.set_trace()
+  cls = set(data["cls"])
+  cls_sf = gl.SFrame({"cls": cls}).add_row_number()
+  cls_sf.print_rows()
+  q_cls_id = input(">>> input query class id: ")
+  q_cls = cls_sf["cls"][q_cls_id]
+  data_cls = data[data["cls"]==q_cls]
   qid = input(">>> input query id (0~236): ")
   #qid = 0
-  demo(net, qid, data, full_db)
+  #demo(net, qid, data, full_db)
+  demo(net, qid, data_cls, full_db)
