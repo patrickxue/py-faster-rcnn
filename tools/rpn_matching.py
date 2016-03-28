@@ -58,6 +58,7 @@ def transform_and_build_nn(cand_sf, dfe, db="./features_sframe.gl", radius=0.51,
     db_sf = gl.SFrame(db)
     db_sf = db_sf.add_row_number()
     # use label="pid" to include pid in nn
+    ipdb.set_trace()
     nn = gl.nearest_neighbors.create(db_sf,label="pid", features=['deep_features.image'],distance='cosine')
     neighbors = nn.query(cand_sf,radius=radius,k=k)
     neighbors_score = neighbors.join(cand_sf, on={"query_label": "id"}, how="inner")
@@ -163,7 +164,7 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCOR
     CONF_THRESH=np.linspace(0,1,11)
     cdf = get_cdf(rois_nms, CONF_THRESH)
     #rois_sf_withScore = save_img_SF(im, rois_nms)
-    rois_sf = save_img_SF_scale(im, rois_nms, scale=2.0)
+    rois_sf = save_img_SF_scale(im, rois_nms, scale=0.5)
     #rois_sf = rois_sf_withScore.remove_column('score')
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix="deep_features")
     #dfe.save("./alexnet.gl")

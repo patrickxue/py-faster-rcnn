@@ -78,6 +78,16 @@ def demo(net, qid, data, db):
   neighbors = neighbors.add_row_number()
   neighbors.print_rows()
   cata_dic_l = data[qid]["cata"]
+  GT_db = map(lambda x: x["c_img"], cata_dic_l)
+  GT_pid = map(lambda x: x["pid"], cata_dic_l)
+  GT_sf = gl.SFrame()
+  GT_sf["image"] = GT_db
+  GT_sf["pid"] = GT_pid
+  alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
+  dfe = gl.load_model(alexnet)
+  GT_feat = dfe.transform(GT_sf)
+  nn = gl.nearest_neighbors.create(GT_feat,label="pid", features=['deep_features.image'],distance='cosine')
+  GT_nn = nn.query(cand_sf,radius=0.6,k=1)
   topk = 3*len(cata_dic_l)  # get the same num of images as in GT
   topk_rois = get_topRoI_distance(neighbors, topk=topk)
   topk_rois.print_rows(max_column_width=20)
@@ -150,15 +160,16 @@ if __name__ == '__main__':
   #small_db = gl.load_sframe("../tools/features_sframe.gl")
   #full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
   #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
-  full_db = gl.load_sframe("./feature_AlexNet_ImageNet_cropped.gl")  # only contain features
-  ipdb.set_trace()
+  #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_cropped.gl")  # only contain features
+  full_db = gl.load_sframe("./cata_cls_img/arm_chairs.gl")  # only contain features
   cls = set(data["cls"])
   cls_sf = gl.SFrame({"cls": cls}).add_row_number()
   cls_sf.print_rows()
   q_cls_id = input(">>> input query class id: ")
   q_cls = cls_sf["cls"][q_cls_id]
   data_cls = data[data["cls"]==q_cls]
-  qid = input(">>> input query id (0~236): ")
+  qid = input(">>> input query id: 0~236: ")
+  #qid = input(">>> input query id: 0~{}: ".format(data_cls.__len__())
   #qid = 0
   #demo(net, qid, data, full_db)
   demo(net, qid, data_cls, full_db)

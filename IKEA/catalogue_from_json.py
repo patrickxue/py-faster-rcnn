@@ -12,20 +12,24 @@ import ipdb
 #cata_db = gl.load_sframe("./cata_db_img.gl")
 #cata_db.rename({"img": "image"})
 #cata_db = gl.load_sframe("./feature_PLACE_db.gl")
-cata_db = gl.load_sframe("./cata_db_image_cropped.gl")
-cata_db.remove_column("image")
-cata_db.rename({"img_cropped": "image"})
+#cata_db = gl.load_sframe("./cata_db_image_cropped.gl")
+#cata_db.remove_column("image")
+#cata_db.rename({"img_cropped": "image"})
+cata_db = gl.SFrame.read_json("./cata_cls.json")
 alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
 dfe = gl.load_model(alexnet)
-ipdb.set_trace()
-feature_db = dfe.transform(cata_db)
 cata_db_img = gl.SFrame() 
+# Get img from url
+if "url" not in cata_db.column_names():
+  url = map(lambda x: x[0], cata_db["file_urls"])
+  cata_db["url"]=url
 for cata in cata_db:
   sub_cata_img = PIL2gl.from_pil_image(Image.open(StringIO(urllib.urlopen(cata["url"]).read())))
-  cata_db_img = cata_db_img.append(gl.SFrame({"url": [cata["url"]], "pid": [cata["pid"]], "img": [sub_cata_img]}))
+  cata_db_img = cata_db_img.append(gl.SFrame({"url": [cata["url"]], "pid": [cata["pid"]], "image": [sub_cata_img]}))
 
-cata_db_img.save("cata_db_img.gl")
-
+ipdb.set_trace()
+feature_db = dfe.transform(cata_db_img)
+feature_db.save("./cata_cls_img/arm_chairs.gl")
 ipdb.set_trace()
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++   
 # from json to SF and remove duplicatoin
