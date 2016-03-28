@@ -43,7 +43,6 @@ def get_topRoI_distance(neighbors, topk=5):
 def join(topk_rois, qid, data):
   cata_GT = data[qid]["cata"]
   pid_GT = map(lambda x: x["pid"], cata_GT)
-  ipdb.set_trace()
   reference_label = topk_rois["reference_label"]
   synset = gl.load_sframe("./synset_clean.gl")["synset"]
   syn_id = map(lambda x: [x_i.strip("cart") for x_i in x], synset)
@@ -73,10 +72,10 @@ def show_img_list(img_l, col_name="X1"):
 def demo(net, qid, data, db):
   query = data[qid]["q_img"]
   #query = db[100]["image"]
-  neighbors, db_sf, cand_sf = match.demo(net, query, db, NMS_THRESH_GLOBAL=0.4, SCORE_THRESH=100)
+  neighbors, db_sf, cand_sf = match.demo(net, query, db, NMS_THRESH_GLOBAL=0.6, SCORE_THRESH=100)
   #neighbors, db_sf, cand_sf = load_neighbors_features()
   neighbors = neighbors.add_row_number()
-  neighbors.print_rows()
+  #neighbors.print_rows()
   cata_dic_l = data[qid]["cata"]
   GT_db = map(lambda x: x["c_img"], cata_dic_l)
   GT_pid = map(lambda x: x["pid"], cata_dic_l)
@@ -86,30 +85,53 @@ def demo(net, qid, data, db):
   alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
   dfe = gl.load_model(alexnet)
   GT_feat = dfe.transform(GT_sf)
-  nn = gl.nearest_neighbors.create(GT_feat,label="pid", features=['deep_features.image'],distance='cosine')
-  GT_nn = nn.query(cand_sf,radius=0.6,k=1)
+  nn = gl.nearest_neighbors.create(GT_feat,label="pid", features=['deep_features.image'],distance='cosine', verbose=False)
+  #GT_nn = nn.query(cand_sf,radius=0.6,k=1)
+  GT_nn = nn.query(cand_sf, k=1, verbose=False)
   topk = 3*len(cata_dic_l)  # get the same num of images as in GT
   topk_rois = get_topRoI_distance(neighbors, topk=topk)
-  topk_rois.print_rows(max_column_width=20)
+  #topk_rois.print_rows(max_column_width=20)
   # topk_group: SFrame with query_label and nearest neighbor list
   #topk_group = topk_rois.groupby(["query_label"], {"nn_l": gl.aggregate.CONCAT("reference_label")})
+
+  # show the original query image
+  gl.SFrame([query])["X1"].show()  # the img is small
+
+  # show all ground truth images
+  cata_img_sa = gl.SArray(map(lambda x: x["c_img"], cata_dic_l))
+  cata_img_sa.show()  # ground truth
+
   matches_db = topk_rois.join(db_sf, on={"reference_label": "pid"}, how="inner")
   matches_roi_l = []
   for roi in set(matches_db["query_label"]):
+    # shows the ground truth closest to the crop
+    GT_matched = GT_nn[GT_nn['query_label']==roi].sort("rank")[0]
+    GT_matched_Id = GT_matched["reference_label"]
+    GT_matched_dist = GT_matched["distance"]
+
+    # Show ground truth
+    print 'Ground truth image:'
+    GT_sf[GT_sf['pid'] == GT_matched_Id]['image'].show()
+    print 'GT distance %s, %s = %f' % (roi, GT_matched_Id, GT_matched_dist)
+
+    # Show matched cata img
     matches_roi = matches_db[matches_db["query_label"] == roi]
     matches_img_sa = gl.SArray(map(lambda x: x["image.1"], matches_roi))
     roi_cata_sa = gl.SArray([matches_roi["image"][0]]).append(matches_img_sa)
-    roi_cata_sa.show()  # show crop and matched cata img
+    roi_cata_sa.show()
+    for row in matches_roi.sort("rank"):
+        print "DB distance %s, %s = %f" % (row["query_label"],
+                                           row["reference_label"],
+                                           row["distance"])
     matches_roi_l.append(matches_roi)
+
   #matches_db_sf_l = map(lambda x, y: gl.SFrame([x]).append(gl.SFrame([y])), matches_db["image"], matches_db["image.1"])  # matched RoI and cata pairs
   #fig, ax = plt.subplots(figsize=(12, 12))
   #ax.imshow(query.pixel_data, aspect='equal')
-  cata_img_sa = gl.SArray(map(lambda x: x["c_img"], cata_dic_l))
   #show_img_list(matches_db_sf_l)
-  gl.SFrame([query])["X1"].show()  # the img is small
-  cata_img_sa.show()  # ground truth
-  matches, recall, recall_rate = join(topk_rois, qid, data)
-  ipdb.set_trace()
+  #gl.SFrame([query])["X1"].show()  # the img is small
+  #matches, recall, recall_rate = join(topk_rois, qid, data)
+  #ipdb.set_trace()
   #matches.print_rows()
 
 def parse_args():
@@ -135,7 +157,6 @@ if __name__ == '__main__':
                           'faster_rcnn_alt_opt', 'faster_rcnn_test.pt')
   caffemodel = os.path.join(cfg.DATA_DIR, 'faster_rcnn_models',
                             NETS[args.demo_net][1])
-  #ipdb.set_trace()
   #caffemodel = os.path.join(cfg.DATA_DIR, '../output/faster_rcnn_end2end/voc_2007_trainval/vgg16_faster_rcnn_iter_70000.caffemodel')
   #caffemodel = os.path.join(cfg.DATA_DIR, '../output/LSDA_200_strong_detector_finetune_ilsvrc13_val1+train1k_iter_50000.caffemodel')
   #cfg.TEST.HAS_RPN = False # Use RPN for proposals

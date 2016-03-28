@@ -58,7 +58,6 @@ def transform_and_build_nn(cand_sf, dfe, db="./features_sframe.gl", radius=0.51,
     db_sf = gl.SFrame(db)
     db_sf = db_sf.add_row_number()
     # use label="pid" to include pid in nn
-    ipdb.set_trace()
     nn = gl.nearest_neighbors.create(db_sf,label="pid", features=['deep_features.image'],distance='cosine')
     neighbors = nn.query(cand_sf,radius=radius,k=k)
     neighbors_score = neighbors.join(cand_sf, on={"query_label": "id"}, how="inner")
@@ -171,7 +170,7 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCOR
     alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
     dfe = gl.load_model(alexnet)
     # 28 imgs in the catalogue, calculates c(100)*n(28) = 2800 similarities
-    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, db=db, radius=.55, k=3)
+    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, db=db, radius=.7, k=3)
     if "path" in db_sf.column_names():
       db_sf.remove_column('path')
     return neighbors, db_sf, cand_sf
