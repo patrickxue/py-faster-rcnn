@@ -55,6 +55,7 @@ def get_cdf(dets_nms_all, CONF_THRESH=np.linspace(0,1,11)):
 def transform_and_build_nn(cand_sf, dfe, db="./features_sframe.gl", radius=0.51, k=3):   
     cand_sf = dfe.transform(cand_sf)
     cand_sf = cand_sf.add_row_number()
+    ipdb.set_trace()
     db_sf = gl.SFrame(db)
     db_sf = db_sf.add_row_number()
     # use label="pid" to include pid in nn

@@ -120,16 +120,15 @@ def demo(net, qid, data, db):
     roi_cata_sa = gl.SArray([matches_roi["image"][0]]).append(matches_img_sa)
     roi_cata_sa.show()
     for row in matches_roi.sort("rank"):
-        print "DB distance %s, %s = %f" % (row["query_label"],
-                                           row["reference_label"],
-                                           row["distance"])
+      print "DB distance %s, %s = %f" % (row["query_label"],
+                                         row["reference_label"],
+                                         row["distance"])
     matches_roi_l.append(matches_roi)
 
   #matches_db_sf_l = map(lambda x, y: gl.SFrame([x]).append(gl.SFrame([y])), matches_db["image"], matches_db["image.1"])  # matched RoI and cata pairs
   #fig, ax = plt.subplots(figsize=(12, 12))
   #ax.imshow(query.pixel_data, aspect='equal')
   #show_img_list(matches_db_sf_l)
-  #gl.SFrame([query])["X1"].show()  # the img is small
   #matches, recall, recall_rate = join(topk_rois, qid, data)
   #ipdb.set_trace()
   #matches.print_rows()
@@ -189,8 +188,7 @@ if __name__ == '__main__':
   q_cls_id = input(">>> input query class id: ")
   q_cls = cls_sf["cls"][q_cls_id]
   data_cls = data[data["cls"]==q_cls]
-  qid = input(">>> input query id: 0~236: ")
-  #qid = input(">>> input query id: 0~{}: ".format(data_cls.__len__())
+  qid = input(">>> input query id: 0~{}: ".format(data_cls.__len__() - 1))
   #qid = 0
   #demo(net, qid, data, full_db)
   demo(net, qid, data_cls, full_db)
