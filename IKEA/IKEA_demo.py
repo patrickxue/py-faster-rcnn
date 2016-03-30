@@ -72,7 +72,7 @@ def show_img_list(img_l, col_name="X1"):
 def demo(net, qid, data, db):
   query = data[qid]["q_img"]
   #query = db[100]["image"]
-  neighbors, db_sf, cand_sf = match.demo(net, query, db, NMS_THRESH_GLOBAL=0.6, SCORE_THRESH=100)
+  neighbors, db_sf, cand_sf = match.demo(net, query, qid, db, NMS_THRESH_GLOBAL=0.6, SCORE_THRESH=500)
   #neighbors, db_sf, cand_sf = load_neighbors_features()
   neighbors = neighbors.add_row_number()
   #neighbors.print_rows()
@@ -132,6 +132,15 @@ def demo(net, qid, data, db):
   #matches, recall, recall_rate = join(topk_rois, qid, data)
   #ipdb.set_trace()
   #matches.print_rows()
+#
+def get_cand_db(net, data):
+  cand_all = gl.SFrame()
+  for qid in xrange(data.__len__()):
+    print "processing qid: %d"%(qid)
+    query = data[qid]["q_img"]
+    cand_q = match.demo(net, query, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.6, SCORE_THRESH=100)
+    cand_all = cand_all.append(cand_q)
+  return cand_all
 
 def parse_args():
   """Parse input arguments."""
@@ -191,4 +200,5 @@ if __name__ == '__main__':
   qid = input(">>> input query id: 0~{}: ".format(data_cls.__len__() - 1))
   #qid = 0
   #demo(net, qid, data, full_db)
-  demo(net, qid, data_cls, full_db)
+  #demo(net, qid, data_cls, full_db)
+  get_cand_db(net, data)

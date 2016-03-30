@@ -52,10 +52,16 @@ def get_cdf(dets_nms_all, CONF_THRESH=np.linspace(0,1,11)):
         cdf = cdf.append(gl.SFrame({"conf": [conf], "num_rois": [num_rois]})) 
     return cdf
 
-def transform_and_build_nn(cand_sf, dfe, db="./features_sframe.gl", radius=0.51, k=3):   
+def transform_cand(cand_sf, qid, dfe):   
     cand_sf = dfe.transform(cand_sf)
     cand_sf = cand_sf.add_row_number()
-    ipdb.set_trace()
+    cand_sf["qid"] = qid * np.ones((cand_sf.__len__())).astype("int")
+    return cand_sf
+
+def transform_and_build_nn(cand_sf, qid, dfe, db="./features_sframe.gl", radius=0.51, k=3):   
+    cand_sf = dfe.transform(cand_sf)
+    cand_sf = cand_sf.add_row_number()
+    cand_sf["qid"] = qid * np.ones((cand_sf.__len__())).astype("int")
     db_sf = gl.SFrame(db)
     db_sf = db_sf.add_row_number()
     # use label="pid" to include pid in nn
@@ -75,13 +81,13 @@ def image_join(neighbors, db_sf, cand_sf, query_id):
     # access: tmp_nn["matches"][0][0-k]["key"]
     matched_db = tmp_db["image"]
     matched_tuple = tmp_nn["image"].append(matched_db)
-    return matched_tuple, tmp_nn 
+    return matched_tuple, tmp_nn
 
 def save_img_SF_scale(img, rois, scale=0):
     """save imgs as SFrame"""
     cand_sf = gl.SFrame()
     (H, W, C)= img.shape
-    for roi in rois:    
+    for roi in rois:
         #cropped = img[y:y+h, x:x+w, :]
         (x, y, x1, y1) = roi[0:4]
         h = roi[3] - roi[1]
@@ -121,7 +127,7 @@ def save_img_SF(img, rois):
         cand_sf = cand_sf.append(cur_sf)
     return cand_sf
 
-def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCORE_THRESH=100):
+def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCORE_THRESH=100):
     """Detect object classes in an image using pre-computed object proposals."""
 
     # Load the demo image
@@ -171,7 +177,9 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCOR
     alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
     dfe = gl.load_model(alexnet)
     # 28 imgs in the catalogue, calculates c(100)*n(28) = 2800 similarities
-    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, dfe, db=db, radius=.7, k=3)
+    cand_sf = transform_cand(rois_sf, qid, dfe)
+    return cand_sf
+    #neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, qid, dfe, db=db, radius=.7, k=3)
     if "path" in db_sf.column_names():
       db_sf.remove_column('path')
     return neighbors, db_sf, cand_sf
