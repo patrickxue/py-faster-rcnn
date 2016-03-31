@@ -1,5 +1,6 @@
 import graphlab as gl
 import _init_paths
+import numpy as np
 from PIL import Image
 from utils import from_pil_image as PIL2gl
 from cStringIO import StringIO
@@ -15,10 +16,11 @@ def scale_img(cata_db_img):
  for scale in scales:
    ipdb.set_trace()
    scale_db = gl.SFrame()
-   imgs = cata_db_img["image"]
-   scaled_imgs = map(lambda x: cv2.resize(x.pixel_data, (0, 0), scale, scale), imgs)
+   imgs = cata_db_img["image_cropped"]
+   scaled_imgs = map(lambda x: PIL2gl.from_pil_image(Image.fromarray(cv2.resize(x.pixel_data, (0, 0), fx=scale, fy=scale))), imgs)
    scale_db["image"] = scaled_imgs
    scale_db["scale"] = scale * np.ones(scale_db.__len__())
+   scale_db["pid"] = cata_db_img["pid"]
    aug_db = aug_db.append(scale_db)
  return aug_db
 
