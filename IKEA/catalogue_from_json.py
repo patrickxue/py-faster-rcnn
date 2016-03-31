@@ -14,14 +14,14 @@ def scale_img(cata_db_img):
  scales = [0.5, 0.75, 1.5, 2]
  aug_db = gl.SFrame()
  for scale in scales:
-   ipdb.set_trace()
    scale_db = gl.SFrame()
-   imgs = cata_db_img["image_cropped"]
+   imgs = cata_db_img["img_cropped"]
    scaled_imgs = map(lambda x: PIL2gl.from_pil_image(Image.fromarray(cv2.resize(x.pixel_data, (0, 0), fx=scale, fy=scale))), imgs)
    scale_db["image"] = scaled_imgs
    scale_db["scale"] = scale * np.ones(scale_db.__len__())
    scale_db["pid"] = cata_db_img["pid"]
    aug_db = aug_db.append(scale_db)
+ ipdb.set_trace()
  return aug_db
 
 alexnet = "~/py-faster-rcnn/tools/alexnet.gl"

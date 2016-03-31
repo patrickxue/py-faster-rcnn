@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#usr/bin/env python
 
 # --------------------------------------------------------
 # Faster R-CNN
@@ -176,10 +176,12 @@ def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5,
     #dfe.save("./alexnet.gl")
     alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
     dfe = gl.load_model(alexnet)
-    # 28 imgs in the catalogue, calculates c(100)*n(28) = 2800 similarities
-    cand_sf = transform_cand(rois_sf, qid, dfe)
-    return cand_sf
-    #neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, qid, dfe, db=db, radius=.7, k=3)
+    
+    # For saving crops and features
+    #cand_sf = transform_cand(rois_sf, qid, dfe)
+
+    #return cand_sf
+    neighbors, db_sf, cand_sf = transform_and_build_nn(rois_sf, qid, dfe, db=db, radius=.7, k=3)
     if "path" in db_sf.column_names():
       db_sf.remove_column('path')
     return neighbors, db_sf, cand_sf

@@ -120,7 +120,7 @@ def demo(net, qid, data, db):
     roi_cata_sa = gl.SArray([matches_roi["image"][0]]).append(matches_img_sa)
     roi_cata_sa.show()
     for row in matches_roi.sort("rank"):
-      print "DB distance %s, %s = %f" % (row["query_label"],
+      print "DB distance %s, %s = %f" row["query_label"],
                                          row["reference_label"],
                                          row["distance"])
     matches_roi_l.append(matches_roi)
@@ -190,7 +190,8 @@ if __name__ == '__main__':
   #full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
   #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_cropped.gl")  # only contain features
-  full_db = gl.load_sframe("./cata_cls_img/arm_chairs.gl")  # only contain features
+  full_db = gl.load_sframe("./feature_AlexNet_ImageNet_scale_cropped.gl")  # only contain features
+  #full_db = gl.load_sframe("./cata_cls_img/arm_chairs.gl")  # only contain features
   cls = set(data["cls"])
   cls_sf = gl.SFrame({"cls": cls}).add_row_number()
   cls_sf.print_rows()
@@ -200,5 +201,5 @@ if __name__ == '__main__':
   qid = input(">>> input query id: 0~{}: ".format(data_cls.__len__() - 1))
   #qid = 0
   #demo(net, qid, data, full_db)
-  #demo(net, qid, data_cls, full_db)
-  get_cand_db(net, data)
+  demo(net, qid, data_cls, full_db)
+  #get_cand_db(net, data)
