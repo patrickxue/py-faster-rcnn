@@ -28,7 +28,8 @@ import argparse
 import graphlab as gl
 from PIL import Image
 from utils import from_pil_image as PIL2gl
-import model_dfe as mdfe
+#import model_dfe as mdfe
+import new_dfe as mdfe
 gl.canvas.set_target('ipynb')
 
 CLASSES = ('__background__',
@@ -97,7 +98,7 @@ def save_img_disk(img, rois):
     for roi in rois:    
         #cropped = img[y:y+h, x:x+w, :]
         cropped = img[roi[1]:roi[3], roi[0]:roi[2], :]
-        scipy.misc.imsave("~/py-faster-rcnn/IKEA/crop_buff/crop_%d.jpg"%cnt, cropped)
+        scipy.misc.imsave("../IKEA/crop_buff/crop_%d.jpg"%cnt, cropped)
         cnt += 1
 
 def save_img_SF(img, rois):
@@ -158,7 +159,7 @@ def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCOR
     # DFE using PLACES, env setting
     save_img_disk(im, rois_nms)
     dfe="PLACES"
-    rois_sf = "~/py-faster-rcnn/IKEA/crop_buff"
+    rois_sf = "../IKEA/crop_buff"
     #roi_sf = gl.image_analysis.load_image("./")
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix=feat)
     # 28 imgs in the catalogue, calculates c(100)*n(28) = 2800 similarities
