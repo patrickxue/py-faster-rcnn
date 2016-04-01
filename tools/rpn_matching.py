@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#usr/bin/env python
 
 # --------------------------------------------------------
 # Faster R-CNN
@@ -87,7 +87,30 @@ def image_join(neighbors, db_sf, cand_sf, query_id):
     # access: tmp_nn["matches"][0][0-k]["key"]
     matched_db = tmp_db["image"]
     matched_tuple = tmp_nn["image"].append(matched_db)
-    return matched_tuple, tmp_nn 
+    return matched_tuple, tmp_nn
+
+def save_img_SF_scale(img, rois, scale=0):
+    """save imgs as SFrame"""
+    cand_sf = gl.SFrame()
+    (H, W, C)= img.shape
+    for roi in rois:
+        #cropped = img[y:y+h, x:x+w, :]
+        (x, y, x1, y1) = roi[0:4]
+        h = roi[3] - roi[1]
+        w = roi[2] - roi[0]
+        if h < 0.25*H:
+          y = max(roi[1] - scale/2.0 * h, 0)
+          y1 = min(roi[3] + scale/2.0 * h, H)
+        if w < 0.25*W:
+          x = max(roi[0] - scale/2.0 * w, 0)
+          x1 = min(roi[0] + scale/2.0 * w, W)
+        cropped = img[y:y1, x:x1, :]
+        #cropped = img[roi[1]:roi[3], roi[0]:roi[2], :]
+        cropped_img = PIL2gl.from_pil_image(Image.fromarray(cropped))
+        #scipy.misc.imsave('crop_%d.jpg'%count, cropped)
+        cur_sf = gl.SFrame({'image': [cropped_img], 'score': [roi[4]]})
+        cand_sf = cand_sf.append(cur_sf)
+    return cand_sf
 
 def save_img_disk(img, rois):
     """save imgs as SFrame"""
@@ -114,7 +137,7 @@ def save_img_SF(img, rois):
         cand_sf = cand_sf.append(cur_sf)
     return cand_sf
 
-def demo(net, image_name, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCORE_THRESH=500):
+def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCORE_THRESH=100):
     """Detect object classes in an image using pre-computed object proposals."""
 
     # Load the demo image

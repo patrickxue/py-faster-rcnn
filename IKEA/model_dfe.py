@@ -36,9 +36,9 @@ def extract_labels_features(images, counter, net, transformer, layer="fc7", topk
 def load_model(batchsize):
     caffe.set_mode_gpu()
     # setup net with ( structure definition file ) + ( caffemodel ), in test mode
-    net = caffe.Net('./googlenet_places205/deploy_places205.protxt',
-                    './googlenet_places205/googlelet_places205_train_iter_2400000.caffemodel', 
-                     caffe.TEST)
+    net = caffe.Net('/home/lonestar/IKEA_DATA/IKEA_DATA/placesCNN/places205CNN_deploy.prototxt',
+			    '/home/lonestar/IKEA_DATA/IKEA_DATA/placesCNN/places205CNN_iter_300000.caffemodel', 
+			    caffe.TEST)
 
     #net = caffe.Net('./placesCNN/places205CNN_deploy.prototxt',
     #                './placesCNN/places205CNN_iter_300000.caffemodel', 
@@ -61,9 +61,9 @@ def load_model(batchsize):
     net.blobs['data'].reshape(batchsize, data_blob_shape[1], data_blob_shape[2], data_blob_shape[3])
     return net, transformer
 
-#model = 'alexnet_places2'
-model = "googlenet_places2"
+#model = "googlenet_places2"
 #layer="pool5/7x7_s1"
+model = 'alexnet_places2'
 counter = 0
 failed = []
 # dump img
@@ -101,3 +101,9 @@ if __name__ == "__main__":
    model = "googlenet_places2"
    features_all  = ext_feat(image_path="./cata_db_img", layer="pool5/7x7_s1")
    features_all.save("./features_GoogLeNet_PLACES_db.gl")
+    ipdb.set_trace()
+    return features_sf 
+
+batchsize = 10
+image_path = "/home/lonestar/IKEA_DATA/IKEA_DATA/test_img_qid=1" 
+#ext_feat(image_path, batchsize=batchsize)

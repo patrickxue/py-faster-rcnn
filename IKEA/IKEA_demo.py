@@ -72,7 +72,7 @@ def show_img_list(img_l, col_name="X1"):
 def demo(net, qid, data, db):
   query = data[qid]["q_img"]
   #query = db[100]["image"]
-  neighbors, db_sf, cand_sf = match.demo(net, query, db, NMS_THRESH_GLOBAL=0.6, SCORE_THRESH=500)
+  neighbors, db_sf, cand_sf = match.demo(net, query, qid, db, NMS_THRESH_GLOBAL=0.6, SCORE_THRESH=500)
   #neighbors, db_sf, cand_sf = load_neighbors_features()
   neighbors = neighbors.add_row_number()
   #neighbors.print_rows()
