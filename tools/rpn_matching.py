@@ -61,8 +61,9 @@ def transform_and_build_nn(cand_sf, num_rois,  dfe="alexnet", db="./features_sfr
     if dfe=="PLACES":
       if "features" in db.column_names():
         db.rename({"features": "deep_features.image"})
-      cand_sf  = mdfe.ext_feat(cand_sf, layer="pool5/7x7_s1", batchsize=num_rois)
-      #cand_sf  = mdfe.ext_feat(cand_sf, batchsize=num_rois)  # layer="fc7" for AlexNet
+      ipdb.set_trace()
+      #cand_sf  = mdfe.ext_feat(cand_sf, layer="pool5/7x7_s1", batchsize=num_rois)
+      cand_sf  = mdfe.ext_feat(cand_sf, batchsize=num_rois)  # layer="fc7" for AlexNet
       cand_sf.rename({"features": "deep_features.image"})
     id = map(lambda x: int(x["labels"].split("/")[-1].split(".")[0].split("_")[1]), cand_sf)
     cand_sf["id"] = id
