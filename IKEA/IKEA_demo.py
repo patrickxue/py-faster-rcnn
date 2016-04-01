@@ -190,8 +190,7 @@ if __name__ == '__main__':
   #full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
   #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_cropped.gl")  # only contain features
-  full_db = gl.load_sframe("./feature_AlexNet_ImageNet_scale_cropped.gl")  # only contain features
-  #full_db = gl.load_sframe("./cata_cls_img/arm_chairs.gl")  # only contain features
+  full_db = gl.load_sframe("./cata_cls_img/arm_chairs.gl")  # only contain features
   cls = set(data["cls"])
   cls_sf = gl.SFrame({"cls": cls}).add_row_number()
   cls_sf.print_rows()

@@ -17,7 +17,6 @@ def batch_images(image_path, batch_size):
 
 def extract_labels_features(images, counter, net, transformer, topk=5):
     #TODO: deal with gl.Image directly instead of reading from disk
-    ipdb.set_trace()
     net.blobs['data'].data[...] = map(lambda x: transformer.preprocess('data',caffe.io.load_image(x)), images)
     out = net.forward()
 
@@ -38,9 +37,9 @@ def extract_labels_features(images, counter, net, transformer, topk=5):
 def load_model(batchsize):
     caffe.set_mode_gpu()
     # setup net with ( structure definition file ) + ( caffemodel ), in test mode
-    net = caffe.Net('./placesCNN/places205CNN_deploy.prototxt',
-                    './placesCNN/places205CNN_iter_300000.caffemodel', 
-                     caffe.TEST)
+    net = caffe.Net('/home/lonestar/IKEA_DATA/IKEA_DATA/placesCNN/places205CNN_deploy.prototxt',
+			    '/home/lonestar/IKEA_DATA/IKEA_DATA/placesCNN/places205CNN_iter_300000.caffemodel', 
+			    caffe.TEST)
 
     # add preprocessing
     transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
@@ -59,9 +58,6 @@ def load_model(batchsize):
     net.blobs['data'].reshape(batchsize, data_blob_shape[1], data_blob_shape[2], data_blob_shape[3])
     return net, transformer
 
-#batchsize = 25
-#image_path = '/home/ubuntu/ikea_image_dir'
-#image_path = gl.load_sframe("./cata_db_img.gl")["img"]
 model = 'alexnet_places2'
 counter = 0
 failed = []
@@ -78,4 +74,9 @@ def ext_feat(image_path="./crop_buff", batchsize=25):
             print "failed on counter: %d" %counter
             continue
 
+    ipdb.set_trace()
     return features_sf 
+
+batchsize = 10
+image_path = "/home/lonestar/IKEA_DATA/IKEA_DATA/test_img_qid=1" 
+ext_feat(image_path, batchsize=batchsize)
