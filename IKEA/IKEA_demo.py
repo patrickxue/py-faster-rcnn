@@ -82,6 +82,7 @@ def demo(net, qid, data, db):
   GT_sf = gl.SFrame()
   GT_sf["image"] = GT_db
   GT_sf["pid"] = GT_pid
+  # distance calculated on AlexNet GraphLab model ?????!!!!
   alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
   dfe = gl.load_model(alexnet)
   GT_feat = dfe.transform(GT_sf)
@@ -90,6 +91,10 @@ def demo(net, qid, data, db):
   GT_nn = nn.query(cand_sf, k=1, verbose=False)
   topk = 3*len(cata_dic_l)  # get the same num of images as in GT
   topk_rois = get_topRoI_distance(neighbors, topk=topk)
+  crop_img = gl.image_analysis.load_images("./crop_buff/")
+  id = map(lambda x: int(x["path"].split("/")[-1].split(".")[0].split("_")[1]), crop_img)
+  crop_img["id"] = id
+  topk_rois = topk_rois.join(crop_img, on={"query_label": "id"}, how="inner")
   #topk_rois.print_rows(max_column_width=20)
   # topk_group: SFrame with query_label and nearest neighbor list
   #topk_group = topk_rois.groupby(["query_label"], {"nn_l": gl.aggregate.CONCAT("reference_label")})
@@ -102,6 +107,8 @@ def demo(net, qid, data, db):
   cata_img_sa.show()  # ground truth
 
   matches_db = topk_rois.join(db_sf, on={"reference_label": "pid"}, how="inner")
+  db_img = gl.load_sframe("./cata_db_image.gl")
+  matches_db = topk_rois.join(db_img, on={"reference_label": "pid"}, how="inner")
   matches_roi_l = []
   for roi in set(matches_db["query_label"]):
     # shows the ground truth closest to the crop
@@ -116,7 +123,6 @@ def demo(net, qid, data, db):
 
     # Show matched cata img
     matches_roi = matches_db[matches_db["query_label"] == roi]
-    ipdb.set_trace()
     matches_img_sa = gl.SArray(map(lambda x: x["image.1"], matches_roi))
     roi_cata_sa = gl.SArray([matches_roi["image"][0]]).append(matches_img_sa)
     roi_cata_sa.show()
@@ -130,6 +136,7 @@ def demo(net, qid, data, db):
   #fig, ax = plt.subplots(figsize=(12, 12))
   #ax.imshow(query.pixel_data, aspect='equal')
   #show_img_list(matches_db_sf_l)
+  ipdb.set_trace()
   #matches, recall, recall_rate = join(topk_rois, qid, data)
   #ipdb.set_trace()
   #matches.print_rows()

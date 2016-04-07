@@ -76,6 +76,7 @@ def ext_feat(image_path,layer="pool7", batchsize=25):
   global counter
   for images in batch_images(image_path, batchsize):
     counter += 1
+    ipdb.set_trace()
     try:
       features_sf = extract_labels_features(images, net, transformer, counter, tags, skip_tags=True)
     except:
