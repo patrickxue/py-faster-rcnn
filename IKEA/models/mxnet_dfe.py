@@ -5,7 +5,6 @@ import logging
 import numpy as np
 import os
 import ipdb
-#import ipdb
 from skimage import io, transform
 import graphlab as gl
 
@@ -28,7 +27,7 @@ if dfe=="inception_21k":
   mean_img = 117 * np.ones((3, 224, 224))
 
 def load_model(model_dir, prefix, num_round=39, batchsize=1):
-  model = mx.model.FeedForward.load(prefix, num_round, ctx=mx.gpu(1), numpy_batch_size=batchsize)
+  model = mx.model.FeedForward.load(prefix, num_round, ctx=mx.gpu(), numpy_batch_size=batchsize)
   synset_file = os.path.join(model_dir, 'synset.txt')
   synset = [l.strip() for l in open(synset_file).readlines()]
 
@@ -46,7 +45,6 @@ def PreprocessImage(path, show_img=False):
   xx = int((img.shape[1] - short_egde) / 2)
   crop_img = img[yy : yy + short_egde, xx : xx + short_egde]
   # resize to 224, 224
-  ipdb.set_trace()
   # resize and normailize piexel value to [0,1]
   resized_img = transform.resize(crop_img, (224, 224))
   if show_img:
@@ -85,7 +83,6 @@ def mx_transform(path, batch_size=100):
   ## Get top5 label
   #top5 = [synset[pred[i]] for i in range(5)]
   #print("Top5: ", top5)
-  ipdb.set_trace()
   internals = model.symbol.get_internals()
   # get feature layer symbol out of internals
   fea_symbol = internals["global_pool_output"]
@@ -97,7 +94,6 @@ def mx_transform(path, batch_size=100):
   feature = feature.reshape(path.__len__(), -1)
   path["feature"] = feature
   #print(global_pooling_feature.shape)
-  ipdb.set_trace()
   return path
 
 if __name__=="__main__":

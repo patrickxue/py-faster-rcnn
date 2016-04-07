@@ -83,8 +83,8 @@ def demo(net, qid, data, db):
   GT_sf = gl.SFrame()
   GT_sf["image"] = GT_db
   GT_sf["pid"] = GT_pid
-  if dfe == "ImageNet_21k":
-    GT_feat = mdfe.mx_transform(GT_sf)
+  ipdb.set_trace()
+  GT_feat = mdfe.mx_transform(GT_sf)
   nn = gl.nearest_neighbors.create(GT_feat,label="pid", features=['deep_features.image'],distance='cosine', verbose=False)
   #GT_nn = nn.query(cand_sf,radius=0.6,k=1)
   GT_nn = nn.query(cand_sf, k=1, verbose=False)

@@ -61,13 +61,16 @@ def transform_cand(cand_sf, qid, dfe):
     return cand_sf
 
 def transform_and_build_nn(cand_sf, qid, dfe, db="./features_sframe.gl", radius=0.51, k=3):   
-    ipdb.set_trace()
     if dfe == "ImageNet_21k":
       cand_sf = mdfe.mx_transform(cand_sf, batch_size=cand_sf.__len__())
     cand_sf = cand_sf.add_row_number()
+    if "feature" in cand_sf.column_names():
+      cand_sf.rename({"feature": "deep_features.image"})
     cand_sf["qid"] = qid * np.ones((cand_sf.__len__())).astype("int")
     db_sf = gl.SFrame(db)
     db_sf = db_sf.add_row_number()
+    if "feature" in db_sf.column_names():
+      db_sf.rename({"feature": "deep_features.image"})
     # use label="pid" to include pid in nn
     nn = gl.nearest_neighbors.create(db_sf,label="pid", features=['deep_features.image'],distance='cosine')
     neighbors = nn.query(cand_sf,radius=radius,k=k)
