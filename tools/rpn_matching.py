@@ -28,7 +28,8 @@ import argparse
 import graphlab as gl
 from PIL import Image
 from utils import from_pil_image as PIL2gl
-import model_dfe as mdfe
+#import model_dfe as mdfe
+import models.mxnet_dfe as mdfe
 gl.canvas.set_target('ipynb')
 
 CLASSES = ('__background__',
@@ -53,13 +54,16 @@ def get_cdf(dets_nms_all, CONF_THRESH=np.linspace(0,1,11)):
     return cdf
 
 def transform_cand(cand_sf, qid, dfe):   
+    # transform cand offline
     cand_sf = dfe.transform(cand_sf)
     cand_sf = cand_sf.add_row_number()
     cand_sf["qid"] = qid * np.ones((cand_sf.__len__())).astype("int")
     return cand_sf
 
 def transform_and_build_nn(cand_sf, qid, dfe, db="./features_sframe.gl", radius=0.51, k=3):   
-    cand_sf = dfe.transform(cand_sf)
+    ipdb.set_trace()
+    if dfe == "ImageNet_21k":
+      cand_sf = mdfe.mx_transform(cand_sf, batch_size=cand_sf.__len__())
     cand_sf = cand_sf.add_row_number()
     cand_sf["qid"] = qid * np.ones((cand_sf.__len__())).astype("int")
     db_sf = gl.SFrame(db)
@@ -174,9 +178,9 @@ def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5,
     #rois_sf = rois_sf_withScore.remove_column('score')
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix="deep_features")
     #dfe.save("./alexnet.gl")
-    alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
-    dfe = gl.load_model(alexnet)
-    
+    #alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
+    #dfe = gl.load_model(alexnet)
+    dfe = "ImageNet_21k"
     # For saving crops and features
     #cand_sf = transform_cand(rois_sf, qid, dfe)
 

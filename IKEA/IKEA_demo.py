@@ -8,6 +8,7 @@ import caffe, os, sys
 import argparse
 import ipdb
 import rpn_matching as match
+import models.mxnet_dfe as mdfe
 
 gl.canvas.set_target('ipynb')
 CLASSES = ('__background__',
@@ -82,9 +83,8 @@ def demo(net, qid, data, db):
   GT_sf = gl.SFrame()
   GT_sf["image"] = GT_db
   GT_sf["pid"] = GT_pid
-  alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
-  dfe = gl.load_model(alexnet)
-  GT_feat = dfe.transform(GT_sf)
+  if dfe == "ImageNet_21k":
+    GT_feat = mdfe.mx_transform(GT_sf)
   nn = gl.nearest_neighbors.create(GT_feat,label="pid", features=['deep_features.image'],distance='cosine', verbose=False)
   #GT_nn = nn.query(cand_sf,radius=0.6,k=1)
   GT_nn = nn.query(cand_sf, k=1, verbose=False)
@@ -120,7 +120,7 @@ def demo(net, qid, data, db):
     roi_cata_sa = gl.SArray([matches_roi["image"][0]]).append(matches_img_sa)
     roi_cata_sa.show()
     for row in matches_roi.sort("rank"):
-      print "DB distance %s, %s = %f" row["query_label"],
+      print "DB distance %s, %s = %f" (row["query_label"],
                                          row["reference_label"],
                                          row["distance"])
     matches_roi_l.append(matches_roi)
@@ -190,15 +190,17 @@ if __name__ == '__main__':
   #full_db = gl.load_sframe("./feature_PLACE_db.gl")  # only contain features
   #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_db.gl")  # only contain features
   #full_db = gl.load_sframe("./feature_AlexNet_ImageNet_cropped.gl")  # only contain features
-  full_db = gl.load_sframe("./cata_cls_img/arm_chairs.gl")  # only contain features
+  #full_db = gl.load_sframe("./cata_cls_img/arm_chairs.gl")  # only contain features
+  full_db = gl.load_sframe("./models/feature_Inception_ImageNet_21k.gl")  # only contain features
   cls = set(data["cls"])
   cls_sf = gl.SFrame({"cls": cls}).add_row_number()
   cls_sf.print_rows()
-  q_cls_id = input(">>> input query class id: ")
+  #q_cls_id = input(">>> input query class id: ")
+  q_cls_id = 5 
   q_cls = cls_sf["cls"][q_cls_id]
   data_cls = data[data["cls"]==q_cls]
-  qid = input(">>> input query id: 0~{}: ".format(data_cls.__len__() - 1))
-  #qid = 0
+  #qid = input(">>> input query id: 0~{}: ".format(data_cls.__len__() - 1))
+  qid = 0
   #demo(net, qid, data, full_db)
   demo(net, qid, data_cls, full_db)
   #get_cand_db(net, data)
