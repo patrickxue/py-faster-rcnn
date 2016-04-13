@@ -120,7 +120,7 @@ def demo(net, qid, data, db):
     roi_cata_sa = gl.SArray([matches_roi["image"][0]]).append(matches_img_sa)
     roi_cata_sa.show()
     for row in matches_roi.sort("rank"):
-      print "DB distance %s, %s = %f" row["query_label"],
+      print "DB distance %s, %s = %f" %(row["query_label"],
                                          row["reference_label"],
                                          row["distance"])
     matches_roi_l.append(matches_roi)
