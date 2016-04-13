@@ -28,7 +28,6 @@ import argparse
 import graphlab as gl
 from PIL import Image
 from utils import from_pil_image as PIL2gl
-import model_dfe as mdfe
 gl.canvas.set_target('ipynb')
 
 CLASSES = ('__background__',
@@ -174,7 +173,7 @@ def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5,
     #rois_sf = rois_sf_withScore.remove_column('score')
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix="deep_features")
     #dfe.save("./alexnet.gl")
-    alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
+    alexnet = "~/py-faster-rcnn/IKEA/alexnet.gl"
     dfe = gl.load_model(alexnet)
     
     # For saving crops and features

@@ -77,6 +77,7 @@ def ext_feat(image_path="./crop_buff", batchsize=25):
     ipdb.set_trace()
     return features_sf 
 
-batchsize = 10
-image_path = "/home/lonestar/IKEA_DATA/IKEA_DATA/test_img_qid=1" 
-ext_feat(image_path, batchsize=batchsize)
+if __name__=="__main__":
+    batchsize = 10
+    image_path = "/home/lonestar/IKEA_DATA/IKEA_DATA/test_img_qid=1" 
+    ext_feat(image_path, batchsize=batchsize)

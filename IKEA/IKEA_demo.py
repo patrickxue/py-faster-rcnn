@@ -82,7 +82,7 @@ def demo(net, qid, data, db):
   GT_sf = gl.SFrame()
   GT_sf["image"] = GT_db
   GT_sf["pid"] = GT_pid
-  alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
+  alexnet = "~/py-faster-rcnn/IKEA/alexnet.gl"
   dfe = gl.load_model(alexnet)
   GT_feat = dfe.transform(GT_sf)
   nn = gl.nearest_neighbors.create(GT_feat,label="pid", features=['deep_features.image'],distance='cosine', verbose=False)
