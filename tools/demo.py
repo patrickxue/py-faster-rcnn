@@ -13,6 +13,7 @@ Demo script showing detections in sample images.
 See README.md for installation instructions before running.
 """
 
+import cv2
 import _init_paths
 from fast_rcnn.config import cfg
 from fast_rcnn.test import im_detect
