@@ -73,7 +73,7 @@ def show_img_list(img_l, col_name="X1"):
 def demo(net, qid, data, db):
   query = data[qid]["q_img"]
   #query = db[100]["image"]
-  neighbors, db_sf, cand_sf = match.demo(net, query, qid, db, NMS_THRESH_GLOBAL=0.6, SCORE_THRESH=500)
+  neighbors, db_sf, cand_sf = match.demo(net, query, qid, db, NMS_THRESH_GLOBAL=0.6, SCORE_THRESH=0.9)
   #neighbors, db_sf, cand_sf = load_neighbors_features()
   neighbors = neighbors.add_row_number()
   #neighbors.print_rows()
@@ -121,21 +121,15 @@ def demo(net, qid, data, db):
     matches_img_sa = gl.SArray(map(lambda x: x["image.1"], matches_roi))
     roi_cata_sa = gl.SArray([matches_roi["image"][0]]).append(matches_img_sa)
     roi_cata_sa.show()
-    ipdb.set_trace()
     for row in matches_roi.sort("rank"):
-      print "DB distance %s, %s = %f" % (row["query_label"],
+      print "RoI score: %f, DB distance %s, %s = %f" % (row["score"], 
+                                       row["query_label"],
                                        row["reference_label"],
                                        row["distance"])
     matches_roi_l.append(matches_roi)
 
   #matches_db_sf_l = map(lambda x, y: gl.SFrame([x]).append(gl.SFrame([y])), matches_db["image"], matches_db["image.1"])  # matched RoI and cata pairs
-  #fig, ax = plt.subplots(figsize=(12, 12))
-  #ax.imshow(query.pixel_data, aspect='equal')
-  #show_img_list(matches_db_sf_l)
-  #matches, recall, recall_rate = join(topk_rois, qid, data)
-  #ipdb.set_trace()
-  #matches.print_rows()
-#
+
 def get_cand_db(net, data):
   cand_all = gl.SFrame()
   for qid in xrange(data.__len__()):
@@ -169,6 +163,11 @@ if __name__ == '__main__':
   caffemodel = os.path.join(cfg.DATA_DIR, 'faster_rcnn_models',
                             NETS[args.demo_net][1])
   #caffemodel = os.path.join(cfg.DATA_DIR, '../output/faster_rcnn_end2end/voc_2007_trainval/vgg16_faster_rcnn_iter_70000.caffemodel')
+
+  # coco detection model
+  #caffemodel = os.path.join(cfg.DATA_DIR, '../data/faster_rcnn_models/coco_vgg16_faster_rcnn_final.caffemodel')
+  #prototxt = os.path.join(cfg.DATA_DIR, '../data/faster_rcnn_models/coco_faster_rcnn_vgg16_test.prototxt')
+
   #caffemodel = os.path.join(cfg.DATA_DIR, '../output/LSDA_200_strong_detector_finetune_ilsvrc13_val1+train1k_iter_50000.caffemodel')
   #cfg.TEST.HAS_RPN = False # Use RPN for proposals
 
@@ -199,11 +198,11 @@ if __name__ == '__main__':
   cls_sf = gl.SFrame({"cls": cls}).add_row_number()
   cls_sf.print_rows()
   #q_cls_id = input(">>> input query class id: ")
-  q_cls_id = 5 
+  q_cls_id = 5
   q_cls = cls_sf["cls"][q_cls_id]
   data_cls = data[data["cls"]==q_cls]
-  #qid = input(">>> input query id: 0~{}: ".format(data_cls.__len__() - 1))
-  qid = 0
+  qid = input(">>> input query id: 0~{}: ".format(data_cls.__len__() - 1))
+  #qid = 0
   #demo(net, qid, data, full_db)
   demo(net, qid, data_cls, full_db)
   #get_cand_db(net, data)

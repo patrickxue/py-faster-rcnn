@@ -169,13 +169,14 @@ def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5,
         #vis_detections(im, cls, dets, thresh=CONF_THRESH)
     # Calculate CDF with different threshold
     #rois_keep = nms(dets_nms_all, NMS_THRESH_GLOBAL)  # take those with NMS, but might lose some with larger scores due to overlap with another region 
-    top_keep = dets_nms_all[:, 4].argsort()[::-1][:SCORE_THRESH]   # take those with maximum score, but might overlap more
+    #top_keep = dets_nms_all[:, 4].argsort()[::-1][:SCORE_THRESH]   # take those with maximum score, but might overlap more
+    top_keep = np.where(dets_nms_all[:, 4] > SCORE_THRESH)[0]
     # TODO: get top_keep by score threshold, say 0.001(130+ rois)
     rois_top = dets_nms_all[top_keep, :]
     nms_keep = nms(rois_top, NMS_THRESH_GLOBAL)
     rois_nms = rois_top[nms_keep, :]
-    CONF_THRESH=np.linspace(0,1,11)
-    cdf = get_cdf(rois_nms, CONF_THRESH)
+    #CONF_THRESH=np.linspace(0,1,11)
+    #cdf = get_cdf(rois_nms, CONF_THRESH)
     #rois_sf_withScore = save_img_SF(im, rois_nms)
     rois_sf = save_img_SF_scale(im, rois_nms, scale=0.5)
     #rois_sf = rois_sf_withScore.remove_column('score')
