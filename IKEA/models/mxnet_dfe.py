@@ -74,26 +74,26 @@ def mx_transform(path, batch_size=100):
     batch = mx.io.SFrameIter(sframe=path, data_field=['resized_image'], batch_size=batch_size)
   # batch = map(lambda x: PreprocessImage(x), path)
   # Get prediction probability of 1000 1classes from model
-  #prob = model.predict(batch)[0]
-  ## Argsort, get prediction index from largest prob to lowest
-  #pred = np.argsort(prob)[::-1]
-  ## Get top1 label
-  #top1 = synset[pred[0]]
+  prob = model.predict(batch)[0]
+  # Argsort, get prediction index from largest prob to lowest
+  pred = np.argsort(prob)[::-1]
+  # Get top1 label
+  top1 = synset[pred[0]]
   #print("Top1: ", top1)
-  ## Get top5 label
-  #top5 = [synset[pred[i]] for i in range(5)]
+  # Get top5 label
+  top5 = [synset[pred[i]] for i in range(5)]
   #print("Top5: ", top5)
   internals = model.symbol.get_internals()
   # get feature layer symbol out of internals
   fea_symbol = internals["global_pool_output"]
-  # Make a new model by using an internal symbol. We can reuse all parameters from model we trained before
   # In this case, we must set ```allow_extra_params``` to True, Because we don't need params from FullyConnected symbol
+  # Make a new model by using an internal symbol. We can reuse all parameters from model we trained before
+  # Make a new model by using an internal symbol. We can reuse all parameters from model we trained before
   feature_extractor = mx.model.FeedForward(ctx=mx.gpu(), symbol=fea_symbol, numpy_batch_size=1,arg_params=model.arg_params, aux_params=model.aux_params,allow_extra_params=True)
   # predict feature
   feature = feature_extractor.predict(batch)
   feature = feature.reshape(path.__len__(), -1)
   path["feature"] = feature
-  #print(global_pooling_feature.shape)
   return path
 
 if __name__=="__main__":

@@ -73,7 +73,7 @@ def show_img_list(img_l, col_name="X1"):
 def demo(net, qid, data, db):
   query = data[qid]["q_img"]
   #query = db[100]["image"]
-  neighbors, db_sf, cand_sf = match.demo(net, query, qid, db, NMS_THRESH_GLOBAL=0.6, SCORE_THRESH=0.9)
+  neighbors, db_sf, cand_sf = match.demo(net, query, qid, db, NMS_THRESH_GLOBAL=0.6, SCORE_THRESH=0.5)
   #neighbors, db_sf, cand_sf = load_neighbors_features()
   neighbors = neighbors.add_row_number()
   #neighbors.print_rows()
@@ -168,7 +168,9 @@ if __name__ == '__main__':
   #caffemodel = os.path.join(cfg.DATA_DIR, '../data/faster_rcnn_models/coco_vgg16_faster_rcnn_final.caffemodel')
   #prototxt = os.path.join(cfg.DATA_DIR, '../data/faster_rcnn_models/coco_faster_rcnn_vgg16_test.prototxt')
 
-  #caffemodel = os.path.join(cfg.DATA_DIR, '../output/LSDA_200_strong_detector_finetune_ilsvrc13_val1+train1k_iter_50000.caffemodel')
+  # imagenet 200 class detector
+  #caffemodel = '/home/lonestar/rcnn_finetune/py-faster-rcnn/output/faster_rcnn_end2end/val1/vgg16_faster_rcnn_iter_100000.caffemodel'
+  #prototxt = '/home/lonestar/rcnn_finetune/py-faster-rcnn/models/VGG16/faster_rcnn_end2end/test.prototxt' 
   #cfg.TEST.HAS_RPN = False # Use RPN for proposals
 
   if not os.path.isfile(caffemodel):

@@ -12,7 +12,7 @@ Demo script showing detections in sample images.
 
 See README.md for installation instructions before running.
 """
-import ipdb
+
 import _init_paths
 from fast_rcnn.config import cfg
 from fast_rcnn.test import im_detect
@@ -23,22 +23,20 @@ import numpy as np
 import scipy.io as sio
 import caffe, os, sys, cv2
 import argparse
+import urllib2
 
-CLASSES = ('__background__',
-           'aeroplane', 'bicycle', 'bird', 'boat',
-           'bottle', 'bus', 'car', 'cat', 'chair',
-           'cow', 'diningtable', 'dog', 'horse',
-           'motorbike', 'person', 'pottedplant',
-           'sheep', 'sofa', 'train', 'tvmonitor')
+#CLASSES = '__background__/person/bicycle/car/motorcycle/airplane/bus/train/truck/boat/traffic light/fire hydrant/stop sign/parking meter/bench/bird/cat/dog/horse/sheep/cow/elephant/bear/zebra/giraffe/backpack/umbrella/handbag/tie/suitcase/frisbee/skis/snowboard/sports ball/kite/baseball bat/baseball glove/skateboard/surfboard/tennis racket/bottle/wine glass/cup/fork/knife/spoon/bowl/banana/apple/sandwich/orange/broccoli/carrot/hot dog/pizza/donut/cake/chair/couch/potted plant/bed/dining table/toilet/tv/laptop/mouse/remote/keyboard/cell phone/microwave/oven/toaster/sink/refrigerator/book/clock/vase/scissors/teddy bear/hair drier/toothbrush'.split('/')
 
-## only IKEA related classes
-#CLASSES = ('__background__', 'bottle', 'chair', 'diningtable', 'pottedplant', 'sofa', 'tvmonitor')
+devkit_path = '/home/lonestar/rcnn_finetune/py-faster-rcnn/data/imagenet/ILSVRC2014_devkit' 
+synsets = sio.loadmat(os.path.join(devkit_path, 'data', 'meta_det.mat'))
+CLASSES = ('__background__',)
+for i in xrange(200):
+    CLASSES = CLASSES + (synsets['synsets'][0][i][2][0],)
 
 NETS = {'vgg16': ('VGG16',
                   'VGG16_faster_rcnn_final.caffemodel'),
         'zf': ('ZF',
                   'ZF_faster_rcnn_final.caffemodel')}
-
 
 def vis_detections(im, class_name, dets, thresh=0.5):
     """Draw detected bounding boxes."""
@@ -76,8 +74,7 @@ def demo(net, image_name):
     """Detect object classes in an image using pre-computed object proposals."""
 
     # Load the demo image
-    #im_file = os.path.join(cfg.DATA_DIR, 'demo', image_name)
-    im_file = os.path.join(cfg.DATA_DIR, 'demo', 'imgs', image_name)
+    im_file = image_name
     im = cv2.imread(im_file)
 
     # Detect all object classes and regress object bounds
@@ -89,15 +86,15 @@ def demo(net, image_name):
            '{:d} object proposals').format(timer.total_time, boxes.shape[0])
 
     # Visualize detections for each class
-    CONF_THRESH = 0
-    NMS_THRESH = 0.3 # get rid of overlapping windows
+    CONF_THRESH = 0.8
+    NMS_THRESH = 0.3
     for cls_ind, cls in enumerate(CLASSES[1:]):
         cls_ind += 1 # because we skipped background
         cls_boxes = boxes[:, 4*cls_ind:4*(cls_ind + 1)]
-        cls_scores = scores[:, cls_ind] # class_score for each class, small if the object not present
+        cls_scores = scores[:, cls_ind]
         dets = np.hstack((cls_boxes,
                           cls_scores[:, np.newaxis])).astype(np.float32)
-        keep = nms(dets, NMS_THRESH) # reduce redundancy
+        keep = nms(dets, NMS_THRESH)
         dets = dets[keep, :]
         vis_detections(im, cls, dets, thresh=CONF_THRESH)
 
@@ -121,15 +118,12 @@ if __name__ == '__main__':
 
     args = parse_args()
 
-    prototxt = os.path.join(cfg.MODELS_DIR, NETS[args.demo_net][0],
-                            'faster_rcnn_alt_opt', 'faster_rcnn_test.pt')
-    caffemodel = os.path.join(cfg.DATA_DIR, 'faster_rcnn_models',
-                              NETS[args.demo_net][1])
+    #prototxt = '/home/haijieg/py-faster-rcnn/models/coco/VGG16/faster_rcnn_end2end/test.prototxt'
+    #caffemodel = '/home/haijieg/py-faster-rcnn/data/faster_rcnn_models/coco_vgg16_faster_rcnn_final.caffemodel'
 
-    #caffemodel = os.path.join(cfg.DATA_DIR, '../output/faster_rcnn_end2end/voc_2007_trainval/vgg16_faster_rcnn_iter_70000.caffemodel')
-    #caffemodel = os.path.join(cfg.DATA_DIR, '../output/LSDA_200_strong_detector_finetune_ilsvrc13_val1+train1k_iter_50000.caffemodel')
-    #cfg.TEST.HAS_RPN = False # Use RPN for proposals
-
+    prototxt = '/home/lonestar/rcnn_finetune/py-faster-rcnn/models/VGG16/faster_rcnn_end2end/test.prototxt' 
+    #caffemodel = '/home/lonestar/rcnn_finetune/py-faster-rcnn/output/faster_rcnn_end2end/train_curated/vgg16_faster_rcnn_iter_10000.caffemodel' 
+    caffemodel = '/home/lonestar/rcnn_finetune/py-faster-rcnn/output/faster_rcnn_end2end/val1/vgg16_faster_rcnn_iter_50000.caffemodel'
     if not os.path.isfile(caffemodel):
         raise IOError(('{:s} not found.\nDid you run ./data/script/'
                        'fetch_faster_rcnn_models.sh?').format(caffemodel))
@@ -149,14 +143,26 @@ if __name__ == '__main__':
     for i in xrange(2):
         _, _= im_detect(net, im)
 
-    im_names = ['000456.jpg', '000542.jpg', '001150.jpg',
-                '001763.jpg', '004545.jpg']
-    im_names = ['20134_cols06a_01_PE362778.jpg', '20141_cols30a_01_PE376670.jpg', 'Pasted image at 2016_02_10 09_03 AM.png']
-    im_names = ['bedroom.jpg', 'living_room.jpg', 'kitchen.jpg']
+    scripps_image_list = os.listdir('/data/scripps/raw')
 
-    for im_name in im_names:
+    while True:
+        url = raw_input("Input image url or ID of scripps network query image")
+        if url is 'q':
+            break
+
+        if url.startswith('http'):
+            print "Opening: ", url
+            imname = './tmp.jpg'
+            response = urllib2.urlopen(url)
+            with open('./tmp.jpg', 'wb') as f:
+                f.write(response.read())
+        else:
+            try:
+                image_id = int(url)
+                imname = '/data/scripps/raw/'+scripps_image_list[image_id]
+                print "Opening: ", imname
+            except:
+                print "Bad image id or url: %s" % url 
         print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-        print 'Demo for data/demo/{}'.format(im_name)
-        demo(net, im_name)
-
-    plt.show()
+        demo(net, imname)
+        plt.show()
