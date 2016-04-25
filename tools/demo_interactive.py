@@ -43,7 +43,6 @@ def vis_detections(im, class_name, dets_nms_all, thresh=0.5):
     """Draw detected bounding boxes."""
     import rpn_matching as matching
     import models.mxnet_dfe as mdfe 
-    ipdb.set_trace()
     rois_nms = dets_nms_all[dets_nms_all[:, 4] > thresh]
     #rois_sf = matching.save_img_SF(im, rois_nms)
     if rois_nms.shape[0] == 0:

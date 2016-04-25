@@ -33,7 +33,6 @@ def load_model(model_dir, prefix, num_round=39, batchsize=1):
 
   return model, synset
 
-model, synset = load_model(model_dir, prefix, num_round=num_round)
 
 def PreprocessImage(path, show_img=False):
   # crop center, subtract mean, and then extract features 
@@ -53,7 +52,7 @@ def PreprocessImage(path, show_img=False):
   sample = np.asarray(resized_img) * 256
   # swap axes to make image from (224, 224, 3) to (3, 224, 224)
   sample = np.swapaxes(sample, 0, 2)
-  sample = np.swapaxes(sample, 2, 2)
+  sample = np.swapaxes(sample, 1, 2)
   # sub mean 
   if isinstance(mean_img, type(sample)):
     normed_img = sample - mean_img
@@ -66,7 +65,6 @@ def PreprocessImage(path, show_img=False):
 def mx_transform(path, batch_size=100):
   """path: image path or sframe: will resize image to 224 * 224, then extract features at global pool layer 
   return the extracted features, and top1, top5 labels with wnid as array"""
-  ipdb.set_trace()
   if isinstance(path, str):
     batch = PreprocessImage(path, False)
   elif isinstance(path, gl.data_structures.sframe.SFrame):
@@ -74,8 +72,11 @@ def mx_transform(path, batch_size=100):
     #  path = path.head(100)
     path['resized_image'] = gl.image_analysis.resize(path['image'], 224, 224, 3)
     batch = mx.io.SFrameIter(sframe=path, data_field=['resized_image'], batch_size=batch_size)
-  elif isinstance(path, numpy.ndarray):
-    batch = path - np.matlib.repmat(mean_img, path.shape[0])
+  elif isinstance(path, np.ndarray):
+    path = np.swapaxes(path, 1, 3)
+    batch = np.swapaxes(path, 2, 3)
+    batch = batch - mean_img
+  model, synset = load_model(model_dir, prefix, num_round=num_round, batchsize=batch_size)
   # batch = map(lambda x: PreprocessImage(x), path)
   # Get prediction probability of 1000 1classes from model
   prob = model.predict(batch)
@@ -98,10 +99,11 @@ def mx_transform(path, batch_size=100):
   # predict feature
   feature = feature_extractor.predict(batch)
   feature = feature.reshape(path.__len__(), -1)
-  path["feature"] = feature
+  if isinstance(path, gl.data_structures.sframe.SFrame):
+      path["feature"] = feature
   return path, top1, top5
 
 if __name__=="__main__":
-  #path='./living_room.jpg'
-  path = gl.load_sframe("../cata_db_image.gl")
+  path='./living_room.jpg'
+  #path = gl.load_sframe("../cata_db_image.gl")
   path_feature = mx_transform(path)

@@ -138,7 +138,6 @@ def save_img_array(img, rois):
     dim = 224
     batch_size = rois.shape[0]
     cand_nd = np.zeros((batch_size, dim, dim, 3)) 
-    ipdb.set_trace()
     from skimage import io, transform
     cnt = 0
     for roi in rois:    
