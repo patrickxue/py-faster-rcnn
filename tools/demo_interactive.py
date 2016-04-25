@@ -13,6 +13,7 @@ Demo script showing detections in sample images.
 See README.md for installation instructions before running.
 """
 
+import ipdb
 import _init_paths
 from fast_rcnn.config import cfg
 from fast_rcnn.test import im_detect
@@ -38,18 +39,27 @@ NETS = {'vgg16': ('VGG16',
         'zf': ('ZF',
                   'ZF_faster_rcnn_final.caffemodel')}
 
-def vis_detections(im, class_name, dets, thresh=0.5):
+def vis_detections(im, class_name, dets_nms_all, thresh=0.5):
     """Draw detected bounding boxes."""
-    inds = np.where(dets[:, -1] >= thresh)[0]
-    if len(inds) == 0:
+    import rpn_matching as matching
+    import models.mxnet_dfe as mdfe 
+    ipdb.set_trace()
+    rois_nms = dets_nms_all[dets_nms_all[:, 4] > thresh]
+    #rois_sf = matching.save_img_SF(im, rois_nms)
+    if rois_nms.shape[0] == 0:
+        print "no detected objects above threshold" 
         return
+    rois_sf = matching.save_img_array(im, rois_nms)
+    features, top1, top5 = mdfe.mx_transform(rois_sf, batch_size = rois_sf.__len__())
+    inds = np.where(dets_nms_all[:, -1] >= thresh)[0]
 
     im = im[:, :, (2, 1, 0)]
+    cnt = 0
     fig, ax = plt.subplots(figsize=(12, 12))
     ax.imshow(im, aspect='equal')
     for i in inds:
-        bbox = dets[i, :4]
-        score = dets[i, -1]
+        bbox = dets_nms_all[i, :4]
+        score = dets_nms_all[i, -1]
 
         ax.add_patch(
             plt.Rectangle((bbox[0], bbox[1]),
@@ -58,14 +68,15 @@ def vis_detections(im, class_name, dets, thresh=0.5):
                           edgecolor='red', linewidth=3.5)
             )
         ax.text(bbox[0], bbox[1] - 2,
-                '{:s} {:.3f}'.format(class_name, score),
+                '{:s} {:.3f}'.format(top1[cnt], score),
                 bbox=dict(facecolor='blue', alpha=0.5),
                 fontsize=14, color='white')
+        cnt += 1
 
-    ax.set_title(('{} detections with '
-                  'p({} | box) >= {:.1f}').format(class_name, class_name,
-                                                  thresh),
-                  fontsize=14)
+    #ax.set_title(('{} detections with '
+    #              'p({} | box) >= {:.1f}').format(top5[cnt], class_name,
+    #                                              thresh),
+    #              fontsize=14)
     plt.axis('off')
     plt.tight_layout()
     plt.draw()
@@ -88,6 +99,7 @@ def demo(net, image_name):
     # Visualize detections for each class
     CONF_THRESH = 0.8
     NMS_THRESH = 0.3
+    dets_nms_all = np.zeros((0, 5))
     for cls_ind, cls in enumerate(CLASSES[1:]):
         cls_ind += 1 # because we skipped background
         cls_boxes = boxes[:, 4*cls_ind:4*(cls_ind + 1)]
@@ -96,7 +108,9 @@ def demo(net, image_name):
                           cls_scores[:, np.newaxis])).astype(np.float32)
         keep = nms(dets, NMS_THRESH)
         dets = dets[keep, :]
-        vis_detections(im, cls, dets, thresh=CONF_THRESH)
+        dets_nms_all = np.vstack((dets_nms_all,  dets)).astype(np.float32)
+        
+    vis_detections(im, cls, dets_nms_all, thresh=CONF_THRESH)
 
 def parse_args():
     """Parse input arguments."""
@@ -123,7 +137,7 @@ if __name__ == '__main__':
 
     prototxt = '/home/lonestar/rcnn_finetune/py-faster-rcnn/models/VGG16/faster_rcnn_end2end/test.prototxt' 
     #caffemodel = '/home/lonestar/rcnn_finetune/py-faster-rcnn/output/faster_rcnn_end2end/train_curated/vgg16_faster_rcnn_iter_10000.caffemodel' 
-    caffemodel = '/home/lonestar/rcnn_finetune/py-faster-rcnn/output/faster_rcnn_end2end/val1/vgg16_faster_rcnn_iter_50000.caffemodel'
+    caffemodel = '/home/lonestar/rcnn_finetune/py-faster-rcnn/output/faster_rcnn_end2end/val1/vgg16_faster_rcnn_iter_100000.caffemodel'
     if not os.path.isfile(caffemodel):
         raise IOError(('{:s} not found.\nDid you run ./data/script/'
                        'fetch_faster_rcnn_models.sh?').format(caffemodel))
@@ -147,6 +161,7 @@ if __name__ == '__main__':
 
     while True:
         url = raw_input("Input image url or ID of scripps network query image")
+        #url = '100'
         if url is 'q':
             break
 

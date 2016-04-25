@@ -53,7 +53,7 @@ def PreprocessImage(path, show_img=False):
   sample = np.asarray(resized_img) * 256
   # swap axes to make image from (224, 224, 3) to (3, 224, 224)
   sample = np.swapaxes(sample, 0, 2)
-  sample = np.swapaxes(sample, 1, 2)
+  sample = np.swapaxes(sample, 2, 2)
   # sub mean 
   if isinstance(mean_img, type(sample)):
     normed_img = sample - mean_img
@@ -64,24 +64,29 @@ def PreprocessImage(path, show_img=False):
 
 # Get preprocessed batch (single image batch)
 def mx_transform(path, batch_size=100):
-  """path: image path or sframe: will resize image to 224 * 224, then extract features at global pool layer """
+  """path: image path or sframe: will resize image to 224 * 224, then extract features at global pool layer 
+  return the extracted features, and top1, top5 labels with wnid as array"""
+  ipdb.set_trace()
   if isinstance(path, str):
     batch = PreprocessImage(path, False)
   elif isinstance(path, gl.data_structures.sframe.SFrame):
-    if path.__len__() > 6000:
-      path = path.head(100)
+    #if path.__len__() > 6000:
+    #  path = path.head(100)
     path['resized_image'] = gl.image_analysis.resize(path['image'], 224, 224, 3)
     batch = mx.io.SFrameIter(sframe=path, data_field=['resized_image'], batch_size=batch_size)
+  elif isinstance(path, numpy.ndarray):
+    batch = path - np.matlib.repmat(mean_img, path.shape[0])
   # batch = map(lambda x: PreprocessImage(x), path)
   # Get prediction probability of 1000 1classes from model
-  prob = model.predict(batch)[0]
+  prob = model.predict(batch)
   # Argsort, get prediction index from largest prob to lowest
   pred = np.argsort(prob)[::-1]
   # Get top1 label
-  top1 = synset[pred[0]]
+  top1 = np.asarray([synset[top] for top in pred[:, 0]])
   #print("Top1: ", top1)
   # Get top5 label
-  top5 = [synset[pred[i]] for i in range(5)]
+  top5 = map(lambda x: synset[x], pred[:, 0:5].reshape(-1,))
+  top5 = np.asarray(top5).reshape(-1, 5)
   #print("Top5: ", top5)
   internals = model.symbol.get_internals()
   # get feature layer symbol out of internals
@@ -94,7 +99,7 @@ def mx_transform(path, batch_size=100):
   feature = feature_extractor.predict(batch)
   feature = feature.reshape(path.__len__(), -1)
   path["feature"] = feature
-  return path
+  return path, top1, top5
 
 if __name__=="__main__":
   #path='./living_room.jpg'

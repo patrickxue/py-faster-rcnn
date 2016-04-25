@@ -130,9 +130,24 @@ def save_img_SF(img, rois):
         cropped = img[roi[1]:roi[3], roi[0]:roi[2], :]
         cropped_img = PIL2gl.from_pil_image(Image.fromarray(cropped))
         #scipy.misc.imsave('crop_%d.jpg'%count, cropped)
-        cur_sf = gl.SFrame({'image': [cropped_img], 'score': [roi[4]]})
         cand_sf = cand_sf.append(cur_sf)
     return cand_sf
+
+def save_img_array(img, rois):
+    """save imgs as nd_array"""
+    dim = 224
+    batch_size = rois.shape[0]
+    cand_nd = np.zeros((batch_size, dim, dim, 3)) 
+    ipdb.set_trace()
+    from skimage import io, transform
+    cnt = 0
+    for roi in rois:    
+        #cropped = img[y:y+h, x:x+w, :]
+        cropped = img[roi[1]:roi[3], roi[0]:roi[2], :]
+        resized_img = transform.resize(cropped, (dim, dim)) * 256
+        cand_nd[cnt, :] = resized_img
+        cnt += 1
+    return cand_nd
 
 def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCORE_THRESH=100):
     """Detect object classes in an image using pre-computed object proposals."""
