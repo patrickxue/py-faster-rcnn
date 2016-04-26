@@ -1,6 +1,6 @@
 #get_ipython().magic(u'matplotlib inline')
-#import mxnet as mx
-from graphlab import mxnet as mx
+import mxnet as mx
+#from graphlab import mxnet as mx
 import logging
 import numpy as np
 import os
@@ -12,13 +12,14 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 dfe = "inception_21k"
 #dfe = "Inception"
+print "++++++++++++using model: " + dfe + "+++++++++++++++++++++++++"
 
 # setting up model specs
 if dfe=="Inception":
-  model_dir = "Inception"
-  prefix = "Inception/Inception_BN"
+  model_dir = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_BN"
+  prefix = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_BN/Inception_BN"
   num_round = 39  # num of epocs for training the model
-  mean_img = mx.nd.load("Inception/mean_224.nd")["mean_img"]
+  mean_img = mx.nd.load("/home/lonestar/py-faster-rcnn/IKEA/models/inception_BN/mean_224.nd")["mean_img"]
 
 if dfe=="inception_21k":
   model_dir = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_21k"
@@ -45,11 +46,11 @@ def PreprocessImage(path, show_img=False):
   crop_img = img[yy : yy + short_egde, xx : xx + short_egde]
   # resize to 224, 224
   # resize and normailize piexel value to [0,1]
-  resized_img = transform.resize(crop_img, (224, 224))
+  sample = transform.resize(crop_img, (224, 224), preserve_range=True)
   if show_img:
       io.imshow(resized_img)
   # convert to numpy.ndarray
-  sample = np.asarray(resized_img) * 256
+  #sample = np.asarray(resized_img) * 256
   # swap axes to make image from (224, 224, 3) to (3, 224, 224)
   sample = np.swapaxes(sample, 0, 2)
   sample = np.swapaxes(sample, 1, 2)
@@ -81,14 +82,15 @@ def mx_transform(path, batch_size=100):
   # Get prediction probability of 1000 1classes from model
   prob = model.predict(batch)
   # Argsort, get prediction index from largest prob to lowest
-  pred = np.argsort(prob)[::-1]
+  # sort along last dimension by default
+  pred = np.argsort(-prob)
   # Get top1 label
   top1 = np.asarray([synset[top] for top in pred[:, 0]])
   #print("Top1: ", top1)
   # Get top5 label
   top5 = map(lambda x: synset[x], pred[:, 0:5].reshape(-1,))
   top5 = np.asarray(top5).reshape(-1, 5)
-  #print("Top5: ", top5)
+  print("Top5: ", top5)
   internals = model.symbol.get_internals()
   # get feature layer symbol out of internals
   fea_symbol = internals["global_pool_output"]
@@ -98,12 +100,15 @@ def mx_transform(path, batch_size=100):
   feature_extractor = mx.model.FeedForward(ctx=mx.gpu(), symbol=fea_symbol, numpy_batch_size=1,arg_params=model.arg_params, aux_params=model.aux_params,allow_extra_params=True)
   # predict feature
   feature = feature_extractor.predict(batch)
-  feature = feature.reshape(path.__len__(), -1)
   if isinstance(path, gl.data_structures.sframe.SFrame):
+      feature = feature.reshape(path.__len__(), -1)
       path["feature"] = feature
   return path, top1, top5
 
 if __name__=="__main__":
   path='./living_room.jpg'
+  path='./car.jpg'
+  path='./cat.jpg'
+  path_feature = mx_transform(path, batch_size=1)
   #path = gl.load_sframe("../cata_db_image.gl")
-  path_feature = mx_transform(path)
+  #path_feature = mx_transform(path)
