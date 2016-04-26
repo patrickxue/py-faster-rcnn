@@ -11,7 +11,7 @@ import graphlab as gl
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 dfe = "inception_21k"
-#dfe = "Inception"
+dfe = "Inception"
 print "++++++++++++using model: " + dfe + "+++++++++++++++++++++++++"
 
 # setting up model specs
@@ -89,7 +89,7 @@ def mx_transform(path, batch_size=100):
   #print("Top1: ", top1)
   # Get top5 label
   top5 = map(lambda x: synset[x], pred[:, 0:5].reshape(-1,))
-  top5 = np.asarray(top5).reshape(-1, 5)
+  #top5 = np.asarray(top5).reshape(-1, 5)
   print("Top5: ", top5)
   internals = model.symbol.get_internals()
   # get feature layer symbol out of internals
