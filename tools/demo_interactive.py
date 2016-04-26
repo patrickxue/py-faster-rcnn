@@ -25,14 +25,16 @@ import scipy.io as sio
 import caffe, os, sys, cv2
 import argparse
 import urllib2
-
-#CLASSES = '__background__/person/bicycle/car/motorcycle/airplane/bus/train/truck/boat/traffic light/fire hydrant/stop sign/parking meter/bench/bird/cat/dog/horse/sheep/cow/elephant/bear/zebra/giraffe/backpack/umbrella/handbag/tie/suitcase/frisbee/skis/snowboard/sports ball/kite/baseball bat/baseball glove/skateboard/surfboard/tennis racket/bottle/wine glass/cup/fork/knife/spoon/bowl/banana/apple/sandwich/orange/broccoli/carrot/hot dog/pizza/donut/cake/chair/couch/potted plant/bed/dining table/toilet/tv/laptop/mouse/remote/keyboard/cell phone/microwave/oven/toaster/sink/refrigerator/book/clock/vase/scissors/teddy bear/hair drier/toothbrush'.split('/')
+import rpn_matching as matching
+import models.mxnet_dfe as mdfe 
 
 devkit_path = '/home/lonestar/rcnn_finetune/py-faster-rcnn/data/imagenet/ILSVRC2014_devkit' 
 synsets = sio.loadmat(os.path.join(devkit_path, 'data', 'meta_det.mat'))
 CLASSES = ('__background__',)
 for i in xrange(200):
     CLASSES = CLASSES + (synsets['synsets'][0][i][2][0],)
+
+CLASSES = '__background__/person/bicycle/car/motorcycle/airplane/bus/train/truck/boat/traffic light/fire hydrant/stop sign/parking meter/bench/bird/cat/dog/horse/sheep/cow/elephant/bear/zebra/giraffe/backpack/umbrella/handbag/tie/suitcase/frisbee/skis/snowboard/sports ball/kite/baseball bat/baseball glove/skateboard/surfboard/tennis racket/bottle/wine glass/cup/fork/knife/spoon/bowl/banana/apple/sandwich/orange/broccoli/carrot/hot dog/pizza/donut/cake/chair/couch/potted plant/bed/dining table/toilet/tv/laptop/mouse/remote/keyboard/cell phone/microwave/oven/toaster/sink/refrigerator/book/clock/vase/scissors/teddy bear/hair drier/toothbrush'.split('/')
 
 NETS = {'vgg16': ('VGG16',
                   'VGG16_faster_rcnn_final.caffemodel'),
@@ -41,8 +43,6 @@ NETS = {'vgg16': ('VGG16',
 
 def vis_detections(im, class_name, dets_nms_all, thresh=0.5):
     """Draw detected bounding boxes."""
-    import rpn_matching as matching
-    import models.mxnet_dfe as mdfe 
     rois_nms = dets_nms_all[dets_nms_all[:, 4] > thresh]
     #rois_sf = matching.save_img_SF(im, rois_nms)
     if rois_nms.shape[0] == 0:
@@ -131,12 +131,12 @@ if __name__ == '__main__':
 
     args = parse_args()
 
-    #prototxt = '/home/haijieg/py-faster-rcnn/models/coco/VGG16/faster_rcnn_end2end/test.prototxt'
-    #caffemodel = '/home/haijieg/py-faster-rcnn/data/faster_rcnn_models/coco_vgg16_faster_rcnn_final.caffemodel'
+    prototxt = '/home/haijieg/py-faster-rcnn/models/coco/VGG16/faster_rcnn_end2end/test.prototxt'
+    caffemodel = '/home/haijieg/py-faster-rcnn/data/faster_rcnn_models/coco_vgg16_faster_rcnn_final.caffemodel'
 
-    prototxt = '/home/lonestar/rcnn_finetune/py-faster-rcnn/models/VGG16/faster_rcnn_end2end/test.prototxt' 
+    #prototxt = '/home/lonestar/rcnn_finetune/py-faster-rcnn/models/VGG16/faster_rcnn_end2end/test.prototxt' 
     #caffemodel = '/home/lonestar/rcnn_finetune/py-faster-rcnn/output/faster_rcnn_end2end/train_curated/vgg16_faster_rcnn_iter_10000.caffemodel' 
-    caffemodel = '/home/lonestar/rcnn_finetune/py-faster-rcnn/output/faster_rcnn_end2end/val1/vgg16_faster_rcnn_iter_100000.caffemodel'
+    #caffemodel = '/home/lonestar/rcnn_finetune/py-faster-rcnn/output/faster_rcnn_end2end/val1/vgg16_faster_rcnn_iter_100000.caffemodel'
     if not os.path.isfile(caffemodel):
         raise IOError(('{:s} not found.\nDid you run ./data/script/'
                        'fetch_faster_rcnn_models.sh?').format(caffemodel))
@@ -153,8 +153,9 @@ if __name__ == '__main__':
 
     # Warmup on a dummy image
     im = 128 * np.ones((300, 500, 3), dtype=np.uint8)
-    for i in xrange(2):
-        _, _= im_detect(net, im)
+    ipdb.set_trace()
+    #for i in xrange(2):
+    #    _, _= im_detect(net, im)
 
     scripps_image_list = os.listdir('/data/scripps/raw')
 

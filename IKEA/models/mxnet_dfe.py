@@ -11,8 +11,8 @@ import graphlab as gl
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 dfe = "inception_21k"
-dfe = "Inception"
-print "++++++++++++using model: " + dfe + "+++++++++++++++++++++++++"
+#dfe = "Inception"
+print "++++++++++++++++using model: " + dfe + "+++++++++++++++++++++++++"
 
 # setting up model specs
 if dfe=="Inception":
@@ -69,6 +69,7 @@ def mx_transform(path, batch_size=100):
   if isinstance(path, str):
     batch = PreprocessImage(path, False)
   elif isinstance(path, gl.data_structures.sframe.SFrame):
+    # did not subtract mean
     #if path.__len__() > 6000:
     #  path = path.head(100)
     path['resized_image'] = gl.image_analysis.resize(path['image'], 224, 224, 3)
@@ -76,7 +77,11 @@ def mx_transform(path, batch_size=100):
   elif isinstance(path, np.ndarray):
     path = np.swapaxes(path, 1, 3)
     batch = np.swapaxes(path, 2, 3)
-    batch = batch - mean_img
+    if isinstance(mean_img, type(batch)):
+      batch = batch - mean_img
+    else:
+      batch = batch - mean_img.asnumpy()
+    #batch = batch - mean_img
   model, synset = load_model(model_dir, prefix, num_round=num_round, batchsize=batch_size)
   # batch = map(lambda x: PreprocessImage(x), path)
   # Get prediction probability of 1000 1classes from model
@@ -90,7 +95,7 @@ def mx_transform(path, batch_size=100):
   # Get top5 label
   top5 = map(lambda x: synset[x], pred[:, 0:5].reshape(-1,))
   #top5 = np.asarray(top5).reshape(-1, 5)
-  print("Top5: ", top5)
+  #print("Top5: ", top5)
   internals = model.symbol.get_internals()
   # get feature layer symbol out of internals
   fea_symbol = internals["global_pool_output"]

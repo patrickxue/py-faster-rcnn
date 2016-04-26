@@ -62,7 +62,7 @@ def transform_cand(cand_sf, qid, dfe):
 
 def transform_and_build_nn(cand_sf, qid, dfe, db="./features_sframe.gl", radius=0.51, k=3):   
     if dfe == "ImageNet_21k":
-      cand_sf = mdfe.mx_transform(cand_sf, batch_size=cand_sf.__len__())
+      cand_sf, top1, top5 = mdfe.mx_transform(cand_sf, batch_size=cand_sf.__len__())
     cand_sf = cand_sf.add_row_number()
     if "feature" in cand_sf.column_names():
       cand_sf.rename({"feature": "deep_features.image"})
