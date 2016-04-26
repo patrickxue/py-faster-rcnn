@@ -11,7 +11,7 @@ import graphlab as gl
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 dfe = "inception_21k"
-dfe = "Inception"
+#dfe = "Inception"
 print "++++++++++++using model: " + dfe + "+++++++++++++++++++++++++"
 
 # setting up model specs
@@ -76,11 +76,13 @@ def mx_transform(path, batch_size=100):
   elif isinstance(path, np.ndarray):
     path = np.swapaxes(path, 1, 3)
     batch = np.swapaxes(path, 2, 3)
-    batch = batch - mean_img
+    if isinstance(mean_img, np.ndarray):
+      batch = batch - mean_img
+    else:
+      batch = batch - mean_img.asnumpy()
   model, synset = load_model(model_dir, prefix, num_round=num_round, batchsize=batch_size)
   # batch = map(lambda x: PreprocessImage(x), path)
   # Get prediction probability of 1000 1classes from model
-  ipdb.set_trace()
   prob = model.predict(batch)
   # Argsort, get prediction index from largest prob to lowest
   # sort along last dimension by default
@@ -90,8 +92,8 @@ def mx_transform(path, batch_size=100):
   #print("Top1: ", top1)
   # Get top5 label
   top5 = map(lambda x: synset[x], pred[:, 0:5].reshape(-1,))
-  #top5 = np.asarray(top5).reshape(-1, 5)
-  print("Top5: ", top5)
+  top5 = np.asarray(top5).reshape(-1, 5)
+  #print("Top5: ", top5)
   internals = model.symbol.get_internals()
   # get feature layer symbol out of internals
   fea_symbol = internals["global_pool_output"]
