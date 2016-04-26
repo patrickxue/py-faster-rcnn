@@ -80,6 +80,7 @@ def mx_transform(path, batch_size=100):
   model, synset = load_model(model_dir, prefix, num_round=num_round, batchsize=batch_size)
   # batch = map(lambda x: PreprocessImage(x), path)
   # Get prediction probability of 1000 1classes from model
+  ipdb.set_trace()
   prob = model.predict(batch)
   # Argsort, get prediction index from largest prob to lowest
   # sort along last dimension by default
