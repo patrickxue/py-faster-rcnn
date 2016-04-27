@@ -143,7 +143,7 @@ def save_img_array(img, rois):
     for roi in rois:    
         #cropped = img[y:y+h, x:x+w, :]
         cropped = img[roi[1]:roi[3], roi[0]:roi[2], :]
-        resized_img = transform.resize(cropped, (dim, dim)) * 256
+        resized_img = transform.resize(cropped, (dim, dim), preserve_range=True)
         cand_nd[cnt, :] = resized_img
         cnt += 1
     return cand_nd
@@ -162,15 +162,15 @@ def save_img_array_keep_AR(img, rois, scale=0.3):
         (x, y, x1, y1) = roi[0:4]
         h = roi[3] - roi[1]
         w = roi[2] - roi[0]
-        if h >= w and h < 0.25 * H:
+        if h >= w:
           y = max(roi[1] - scale/2.0 * h, 0)
           y1 = min(roi[3] + scale/2.0 * h, H)
           margin = (y1-y-w)/2.0
           x = max(roi[0] - margin, 0)
-          x1 = min(roi[0] + margin, W)
-        if w > h and w < 0.25*W:
+          x1 = min(roi[2] + margin, W)
+        if w > h:
           x = max(roi[0] - scale/2.0 * w, 0)
-          x1 = min(roi[0] + scale/2.0 * w, W)
+          x1 = min(roi[2] + scale/2.0 * w, W)
           margin = (x1-x-h)/2.0
           y = max(roi[1] - margin, 0)
           y1 = min(roi[3] + margin, H)
