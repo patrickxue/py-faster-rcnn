@@ -153,6 +153,7 @@ def save_img_array_keep_AR(img, rois, scale=0.3):
     dim = 224
     batch_size = rois.shape[0]
     cand_nd = np.zeros((batch_size, dim, dim, 3)) 
+    enlarged_rois = np.zeros((batch_size, 4))
     from skimage import io, transform
     cnt = 0
     (H, W, C)= img.shape
@@ -173,11 +174,12 @@ def save_img_array_keep_AR(img, rois, scale=0.3):
           margin = (x1-x-h)/2.0
           y = max(roi[1] - margin, 0)
           y1 = min(roi[3] + margin, H)
+        enlarged_rois[cnt, :] = np.asarray([x, y, x1, y1])
         cropped = img[y:y1, x:x1, :]
         resized_img = transform.resize(cropped, (dim, dim), preserve_range=True)
         cand_nd[cnt, :] = resized_img
         cnt += 1
-    return cand_nd
+    return cand_nd, enlarged_rois
 
 def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCORE_THRESH=100):
     """Detect object classes in an image using pre-computed object proposals."""
