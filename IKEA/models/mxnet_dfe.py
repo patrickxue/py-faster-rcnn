@@ -11,7 +11,7 @@ import graphlab as gl
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 dfe = "inception_21k"
-#dfe = "Inception"
+dfe = "Inception"
 print "++++++++++++using model: " + dfe + "+++++++++++++++++++++++++"
 
 # setting up model specs

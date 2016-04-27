@@ -148,6 +148,37 @@ def save_img_array(img, rois):
         cnt += 1
     return cand_nd
 
+def save_img_array_keep_AR(img, rois, scale=0.3):
+    """save imgs as nd_array, enlarge by scale, croop square, keep aspect ratio"""
+    dim = 224
+    batch_size = rois.shape[0]
+    cand_nd = np.zeros((batch_size, dim, dim, 3)) 
+    from skimage import io, transform
+    cnt = 0
+    (H, W, C)= img.shape
+    for roi in rois:
+        #cropped = img[y:y+h, x:x+w, :]
+        (x, y, x1, y1) = roi[0:4]
+        h = roi[3] - roi[1]
+        w = roi[2] - roi[0]
+        if h >= w and h < 0.25 * H:
+          y = max(roi[1] - scale/2.0 * h, 0)
+          y1 = min(roi[3] + scale/2.0 * h, H)
+          margin = (y1-y-w)/2.0
+          x = max(roi[0] - margin, 0)
+          x1 = min(roi[0] + margin, W)
+        if w > h and w < 0.25*W:
+          x = max(roi[0] - scale/2.0 * w, 0)
+          x1 = min(roi[0] + scale/2.0 * w, W)
+          margin = (x1-x-h)/2.0
+          y = max(roi[1] - margin, 0)
+          y1 = min(roi[3] + margin, H)
+        cropped = img[y:y1, x:x1, :]
+        resized_img = transform.resize(cropped, (dim, dim), preserve_range=True)
+        cand_nd[cnt, :] = resized_img
+        cnt += 1
+    return cand_nd
+
 def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCORE_THRESH=100):
     """Detect object classes in an image using pre-computed object proposals."""
 
@@ -267,4 +298,4 @@ if __name__ == '__main__':
         neighbors, db_sf, cand_sf = demo(net, im_name)
         neigh_all.append(neighbors)
         cand_sf_all.append(cand_sf)
-        #image_join(neighbors, db_sf, cand_sf, 9)['image'].show()
+       #image_join(neighbors, db_sf, cand_sf, 9)['image'].show()

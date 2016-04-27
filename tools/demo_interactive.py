@@ -49,7 +49,7 @@ def vis_detections(im, class_name, dets_nms_all, thresh=0.5):
     if rois_nms.shape[0] == 0:
         #print "no detected objects above threshold" 
         return
-    rois_sf = matching.save_img_array(im, rois_nms)
+    rois_sf = matching.save_img_array_keep_AR(im, rois_nms)
     features, top1, top5 = mdfe.mx_transform(rois_sf, batch_size = rois_sf.__len__())
     inds = np.where(dets_nms_all[:, -1] >= thresh)[0]
 
