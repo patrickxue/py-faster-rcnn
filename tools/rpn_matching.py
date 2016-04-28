@@ -113,13 +113,13 @@ def save_img_SF_scale(img, rois, scale=0):
         cand_sf = cand_sf.append(cur_sf)
     return cand_sf
 
-def save_img_disk(img, rois):
+def save_img_disk(img, rois, im_name=''):
     """save imgs as SFrame"""
     cnt = 0
     for roi in rois:    
         #cropped = img[y:y+h, x:x+w, :]
         cropped = img[roi[1]:roi[3], roi[0]:roi[2], :]
-        scipy.misc.imsave("/home/xeraph/py-faster-rcnn/IKEA/crop_buff/crop_%d.jpg"%cnt, cropped)
+        scipy.misc.imsave("/home/lonestar/py-faster-rcnn/tools/crop_buff/" + im_name + "_CROP%d.jpg"%cnt, cropped)
         cnt += 1
 
 def save_img_SF(img, rois):

@@ -42,6 +42,19 @@ NETS = {'vgg16': ('VGG16',
         'zf': ('ZF',
                   'ZF_faster_rcnn_final.caffemodel')}
 
+
+def save_cropped(im, class_name, dets_nms_all, im_name, thresh=0.5):
+    """Draw detected bounding boxes."""
+    rois_nms = dets_nms_all[dets_nms_all[:, 4] > thresh]
+    #rois_sf = matching.save_img_SF(im, rois_nms)
+    path = im_name + '_CLASS=' + class_name
+    if rois_nms.shape[0] == 0:
+        #print "no detected objects above threshold" 
+        return
+    matching.save_img_disk(im, rois_nms, path)
+    rois_sf, enlarged_rois = matching.save_img_array_keep_AR(im, rois_nms)
+    matching.save_img_disk(im, enlarged_rois, path + '_enlarged')
+
 def vis_detections(im, class_name, dets_nms_all, thresh=0.5):
     """Draw detected bounding boxes."""
     rois_nms = dets_nms_all[dets_nms_all[:, 4] > thresh]
@@ -102,6 +115,7 @@ def demo(net, image_name):
     # Load the demo image
     im_file = image_name
     im = cv2.imread(im_file)
+    im_name = image_name.split('/')[-1].split('.')[0]
 
     # Detect all object classes and regress object bounds
     timer = Timer()
@@ -124,7 +138,8 @@ def demo(net, image_name):
         keep = nms(dets, NMS_THRESH)
         dets = dets[keep, :]
         vis_detections(im, cls, dets, thresh=CONF_THRESH)
-        dets_nms_all = np.vstack((dets_nms_all,  dets)).astype(np.float32)
+        #save_cropped(im, cls, dets, im_name, thresh=CONF_THRESH)
+        #dets_nms_all = np.vstack((dets_nms_all,  dets)).astype(np.float32)
         
     #vis_detections(im, cls, dets_nms_all, thresh=CONF_THRESH)
 
@@ -174,7 +189,16 @@ if __name__ == '__main__':
         _, _= im_detect(net, im)
 
     scripps_image_list = os.listdir('/data/scripps/raw')
+    
+    # save img crops
+    #cnt = 0
+    #for image in scripps_image_list:
+    #    imname = '/data/scripps/raw/' + image
+    #    print "processing {:d} img: {:s}".format(cnt, image)
+    #    demo(net, imname)
+    #    cnt += 1
 
+    # interactive demo
     while True:
         url = raw_input("Input image url or ID of scripps network query image: >>>")
         #url = '100'
