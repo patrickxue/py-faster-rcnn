@@ -1,6 +1,6 @@
 #get_ipython().magic(u'matplotlib inline')
-import mxnet as mx
-#from graphlab import mxnet as mx
+#import mxnet as mx
+from graphlab import mxnet as mx
 import logging
 import numpy as np
 import os
@@ -10,8 +10,9 @@ import graphlab as gl
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-dfe = "inception_21k"
-dfe = "Inception"
+dfe = "Inception_21k"
+dfe = "Inception"  # Inception_BN
+dfe = "Inception_v3"
 print "++++++++++++using model: " + dfe + "+++++++++++++++++++++++++"
 
 # setting up model specs
@@ -19,21 +20,26 @@ if dfe=="Inception":
   model_dir = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_BN"
   prefix = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_BN/Inception_BN"
   num_round = 39  # num of epocs for training the model
+  dim = 224
   mean_img = mx.nd.load("/home/lonestar/py-faster-rcnn/IKEA/models/inception_BN/mean_224.nd")["mean_img"]
-
-if dfe=="inception_21k":
+elif dfe=="Inception_21k":
   model_dir = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_21k"
   prefix = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_21k/Inception"
   num_round = 9
-  mean_img = 117 * np.ones((3, 224, 224))
+  dim = 224
+  mean_img = 117 * np.ones((3, dim, dim))
+elif dfe=="Inception_v3":
+  model_dir = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_v3"
+  prefix = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_v3/Inception-7"
+  num_round = 1
+  dim = 299
+  mean_img = 128 * np.ones((3, dim, dim))
 
 def load_model(model_dir, prefix, num_round=39, batchsize=1):
   model = mx.model.FeedForward.load(prefix, num_round, ctx=mx.gpu(), numpy_batch_size=batchsize)
   synset_file = os.path.join(model_dir, 'synset.txt')
   synset = [l.strip() for l in open(synset_file).readlines()]
-
   return model, synset
-
 
 def PreprocessImage(path, show_img=False):
   # crop center, subtract mean, and then extract features 
@@ -44,9 +50,8 @@ def PreprocessImage(path, show_img=False):
   yy = int((img.shape[0] - short_egde) / 2)
   xx = int((img.shape[1] - short_egde) / 2)
   crop_img = img[yy : yy + short_egde, xx : xx + short_egde]
-  # resize to 224, 224
   # resize and normailize piexel value to [0,1]
-  sample = transform.resize(crop_img, (224, 224), preserve_range=True)
+  sample = transform.resize(crop_img, (dim, dim), preserve_range=True)
   if show_img:
       io.imshow(resized_img)
   # convert to numpy.ndarray
@@ -59,7 +64,9 @@ def PreprocessImage(path, show_img=False):
     normed_img = sample - mean_img
   else:
     normed_img = sample - mean_img.asnumpy()
-  normed_img.resize(1, 3, 224, 224)
+  if dfe == 'Inception_v3':
+    normed_img /= 128
+  normed_img.resize(1, 3, dim, dim)
   return normed_img
 
 # Get preprocessed batch (single image batch)
@@ -69,8 +76,7 @@ def mx_transform(path, batch_size=100):
   if isinstance(path, str):
     batch = PreprocessImage(path, False)
   elif isinstance(path, gl.data_structures.sframe.SFrame):
-    #if path.__len__() > 6000:
-    #  path = path.head(100)
+    # did not subtract mean
     path['resized_image'] = gl.image_analysis.resize(path['image'], 224, 224, 3)
     batch = mx.io.SFrameIter(sframe=path, data_field=['resized_image'], batch_size=batch_size)
   elif isinstance(path, np.ndarray):
@@ -80,6 +86,8 @@ def mx_transform(path, batch_size=100):
       batch = batch - mean_img
     else:
       batch = batch - mean_img.asnumpy()
+    if dfe == 'Inception_v3':
+      batch /= 128
   model, synset = load_model(model_dir, prefix, num_round=num_round, batchsize=batch_size)
   # batch = map(lambda x: PreprocessImage(x), path)
   # Get prediction probability of 1000 1classes from model
@@ -93,7 +101,10 @@ def mx_transform(path, batch_size=100):
   # Get top5 label
   top5 = map(lambda x: synset[x], pred[:, 0:5].reshape(-1,))
   top5 = np.asarray(top5).reshape(-1, 5)
+  prob.sort()
+  prob_top5 = prob[:, -1:-6:-1] 
   #print("Top5: ", top5)
+  #print("Top5_prob: ", prob_top5)
   internals = model.symbol.get_internals()
   # get feature layer symbol out of internals
   fea_symbol = internals["global_pool_output"]
@@ -106,10 +117,9 @@ def mx_transform(path, batch_size=100):
   if isinstance(path, gl.data_structures.sframe.SFrame):
       feature = feature.reshape(path.__len__(), -1)
       path["feature"] = feature
-  return path, top1, top5
+  return path, top1, top5, prob_top5
 
 if __name__=="__main__":
-  path='./living_room.jpg'
   path='./car.jpg'
   path='./cat.jpg'
   path_feature = mx_transform(path, batch_size=1)

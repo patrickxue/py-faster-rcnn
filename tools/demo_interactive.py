@@ -50,9 +50,9 @@ def vis_detections(im, class_name, dets_nms_all, thresh=0.5):
         #print "no detected objects above threshold" 
         return
     rois_sf, enlarged_rois = matching.save_img_array_keep_AR(im, rois_nms)
-    features, top1, top5 = mdfe.mx_transform(rois_sf, batch_size = rois_sf.__len__())
+    features, top1, top5, prob = mdfe.mx_transform(rois_sf, batch_size = rois_sf.__len__())
     rois_sf_old = matching.save_img_array(im, rois_nms)
-    features_old, top1_old, top5_old = mdfe.mx_transform(rois_sf_old, batch_size = rois_sf_old.__len__())
+    features_old, top1_old, top5_old, prob_old = mdfe.mx_transform(rois_sf_old, batch_size = rois_sf_old.__len__())
     inds = np.where(dets_nms_all[:, -1] >= thresh)[0]
 
     im = im[:, :, (2, 1, 0)]
@@ -83,7 +83,7 @@ def vis_detections(im, class_name, dets_nms_all, thresh=0.5):
                           bbox_enlarged[3] - bbox_enlarged[1], fill=False,
                           edgecolor='black', linewidth=3.5)
             )
-        ax.text(bbox_enlarged[0], bbox_enlarged[1] - 2,
+        ax.text(bbox_enlarged[0], bbox_enlarged[3] + 2,
                 #'{:s} {:s} {:.3f}'.format(class_name, top1[cnt], score),
                 '{:s} {:s} {:s} {:s} {:s} {:.3f}'.format(top5[cnt][0], top5[cnt][1], top5[cnt][2], top5[cnt][3], top5[cnt][4], score),
                 bbox=dict(facecolor='blue', alpha=0.5),

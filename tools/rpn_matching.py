@@ -135,7 +135,7 @@ def save_img_SF(img, rois):
 
 def save_img_array(img, rois):
     """save imgs as nd_array"""
-    dim = 224
+    dim = 299 
     batch_size = rois.shape[0]
     cand_nd = np.zeros((batch_size, dim, dim, 3)) 
     from skimage import io, transform
@@ -150,7 +150,8 @@ def save_img_array(img, rois):
 
 def save_img_array_keep_AR(img, rois, scale=0.3):
     """save imgs as nd_array, enlarge by scale, croop square, keep aspect ratio"""
-    dim = 224
+    dim = 299
+    #dim = 224
     batch_size = rois.shape[0]
     cand_nd = np.zeros((batch_size, dim, dim, 3)) 
     enlarged_rois = np.zeros((batch_size, 4))
