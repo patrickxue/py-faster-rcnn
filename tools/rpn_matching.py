@@ -148,7 +148,7 @@ def save_img_array(img, rois):
         cnt += 1
     return cand_nd
 
-def save_img_array_keep_AR(img, rois, scale=0.3):
+def save_img_array_keep_AR(img, rois, scale=0):
     """save imgs as nd_array, enlarge by scale, croop square, keep aspect ratio"""
     dim = 299
     #dim = 224
