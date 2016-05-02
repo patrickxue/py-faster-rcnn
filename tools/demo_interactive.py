@@ -88,14 +88,14 @@ def vis_detections(im, class_name, dets_nms_all, thresh=0.5):
                 fontsize=14, color='white')
 
         # put bbox on enlarged area
-        bbox_enlarged = enlarged_rois[i, :] 
+        bbox_enlarged = enlarged_rois[i, :]
         ax.add_patch(
             plt.Rectangle((bbox_enlarged[0], bbox_enlarged[1]),
                           bbox_enlarged[2] - bbox_enlarged[0],
                           bbox_enlarged[3] - bbox_enlarged[1], fill=False,
                           edgecolor='black', linewidth=3.5)
             )
-        ax.text(bbox[0], bbox[3] + 5,
+        ax.text(bbox_enlarged[0], bbox_enlarged[3] + 5,
                 '{:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f}'.format(top5[cnt][0], prob[cnt][0], top5[cnt][1], prob[cnt][1], top5[cnt][2],prob[cnt][2], top5[cnt][3], prob[cnt][3], top5[cnt][4],prob[cnt][4]),
                 bbox=dict(facecolor='blue', alpha=0.5),
                 fontsize=14, color='white')
