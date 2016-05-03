@@ -74,7 +74,6 @@ def ext_feat(image_path="./crop_buff", batchsize=25):
             print "failed on counter: %d" %counter
             continue
 
-    ipdb.set_trace()
     return features_sf 
 
 if __name=="__main__":

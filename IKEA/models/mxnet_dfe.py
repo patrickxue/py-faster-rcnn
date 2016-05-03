@@ -10,30 +10,31 @@ import graphlab as gl
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-dfe = "Inception_21k"
-dfe = "Inception"  # Inception_BN
-dfe = "Inception_v3"
-print "++++++++++++using model: " + dfe + "+++++++++++++++++++++++++"
+#dfe = "Inception_21k"
+#dfe = "Inception"  # Inception_BN
+#dfe = "Inception_v3"
+#print "++++++++++++using model: " + dfe + "+++++++++++++++++++++++++"
 
-# setting up model specs
-if dfe=="Inception":
-  model_dir = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_BN"
-  prefix = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_BN/Inception_BN"
-  num_round = 39  # num of epocs for training the model
-  dim = 224
-  mean_img = mx.nd.load("/home/lonestar/py-faster-rcnn/IKEA/models/inception_BN/mean_224.nd")["mean_img"]
-elif dfe=="Inception_21k":
-  model_dir = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_21k"
-  prefix = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_21k/Inception"
-  num_round = 9
-  dim = 224
-  mean_img = 117 * np.ones((3, dim, dim))
-elif dfe=="Inception_v3":
-  model_dir = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_v3"
-  prefix = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_v3/Inception-7"
-  num_round = 1
-  dim = 299
-  mean_img = 128 * np.ones((3, dim, dim))
+def init(dfe="Inception_v3"):
+  if dfe=="Inception":
+    model_dir = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_BN"
+    prefix = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_BN/Inception_BN"
+    num_round = 39  # num of epocs for training the model
+    dim = 224
+    mean_img = mx.nd.load("/home/lonestar/py-faster-rcnn/IKEA/models/inception_BN/mean_224.nd")["mean_img"]
+  elif dfe=="Inception_21k":
+    model_dir = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_21k"
+    prefix = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_21k/Inception"
+    num_round = 9
+    dim = 224
+    mean_img = 117 * np.ones((3, dim, dim))
+  elif dfe=="Inception_v3":
+    model_dir = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_v3"
+    prefix = "/home/lonestar/py-faster-rcnn/IKEA/models/inception_v3/Inception-7"
+    num_round = 1
+    dim = 299
+    mean_img = 128 * np.ones((3, dim, dim))
+  return model_dir, prefix, num_round, dim, mean_img
 
 def load_model(model_dir, prefix, num_round=39, batchsize=1):
   model = mx.model.FeedForward.load(prefix, num_round, ctx=mx.gpu(), numpy_batch_size=batchsize)
@@ -70,14 +71,15 @@ def PreprocessImage(path, show_img=False):
   return normed_img
 
 # Get preprocessed batch (single image batch)
-def mx_transform(path, batch_size=100):
+def mx_transform(path, batch_size=100, dfe="Inception_v3"):
   """path: image path or sframe: will resize image to 224 * 224, then extract features at global pool layer 
   return the extracted features, and top1, top5 labels with wnid as array"""
+  model_dir, prefix, num_round, dim, mean_img = init(dfe)
   if isinstance(path, str):
     batch = PreprocessImage(path, False)
   elif isinstance(path, gl.data_structures.sframe.SFrame):
     # did not subtract mean
-    path['resized_image'] = gl.image_analysis.resize(path['image'], 224, 224, 3)
+    path['resized_image'] = gl.image_analysis.resize(path['image'], dim, dim, 3)
     batch = mx.io.SFrameIter(sframe=path, data_field=['resized_image'], batch_size=batch_size)
   elif isinstance(path, np.ndarray):
     path = np.swapaxes(path, 1, 3)
