@@ -18,8 +18,8 @@ CLASSES = ('__background__',
            'motorbike', 'person', 'pottedplant',
            'sheep', 'sofa', 'train', 'tvmonitor')
 
-# only IKEA related classes
-#CLASSES = ('__background__', 'bottle', 'chair', 'diningtable', 'pottedplant', 'sofa', 'tvmonitor')
+#CLASSES = '__background__/person/bicycle/car/motorcycle/airplane/bus/train/truck/boat/traffic light/fire hydrant/stop sign/parking meter/bench/bird/cat/dog/horse/sheep/cow/elephant/bear/zebra/giraffe/backpack/umbrella/handbag/tie/suitcase/frisbee/skis/snowboard/sports ball/kite/baseball bat/baseball glove/skateboard/surfboard/tennis racket/bottle/wine glass/cup/fork/knife/spoon/bowl/banana/apple/sandwich/orange/broccoli/carrot/hot dog/pizza/donut/cake/chair/couch/potted plant/bed/dining table/toilet/tv/laptop/mouse/remote/keyboard/cell phone/microwave/oven/toaster/sink/refrigerator/book/clock/vase/scissors/teddy bear/hair drier/toothbrush'.split('/')
+
 NETS = {'vgg16': ('VGG16',
                   'VGG16_faster_rcnn_final.caffemodel'),
         'zf': ('ZF',
@@ -73,7 +73,7 @@ def show_img_list(img_l, col_name="X1"):
 def demo(net, qid, data, db):
   query = data[qid]["q_img"]
   #query = db[100]["image"]
-  neighbors, db_sf, cand_sf = match.demo(net, query, qid, db, NMS_THRESH_GLOBAL=0.6, SCORE_THRESH=0.5)
+  neighbors, db_sf, cand_sf = match.demo(net, query, qid, db, NMS_THRESH_GLOBAL=0.6, SCORE_THRESH=0.9)
   #neighbors, db_sf, cand_sf = load_neighbors_features()
   neighbors = neighbors.add_row_number()
   #neighbors.print_rows()
@@ -82,7 +82,6 @@ def demo(net, qid, data, db):
   topk_rois = get_topRoI_distance(neighbors, topk=topk)
   # topk_group: SFrame with query_label and nearest neighbor list
   #topk_group = topk_rois.groupby(["query_label"], {"nn_l": gl.aggregate.CONCAT("reference_label")})
-
 
   # For calculating the distance beteween crop and the nearset product in ground truth catalogue
   #GT_db = map(lambda x: x["c_img"], cata_dic_l)

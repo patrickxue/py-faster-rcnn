@@ -182,7 +182,7 @@ def save_img_array_keep_AR(img, rois, scale=0):
         cnt += 1
     return cand_nd, enlarged_rois
 
-def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCORE_THRESH=100):
+def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5, SCORE_THRESH=0.8):
     """Detect object classes in an image using pre-computed object proposals."""
 
     # Load the demo image
@@ -301,4 +301,4 @@ if __name__ == '__main__':
         neighbors, db_sf, cand_sf = demo(net, im_name)
         neigh_all.append(neighbors)
         cand_sf_all.append(cand_sf)
-       #image_join(neighbors, db_sf, cand_sf, 9)['image'].show()
+        #image_join(neighbors, db_sf, cand_sf, 9)['image'].show()
