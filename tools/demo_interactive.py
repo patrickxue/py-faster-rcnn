@@ -82,10 +82,11 @@ def vis_detections(im, class_name, dets_nms_all, thresh=0.5):
                           bbox[3] - bbox[1], fill=False,
                           edgecolor='red', linewidth=3.5)
             )
+        top5_old[cnt] = map(lambda x: x.split(',')[0], top5_old[cnt])
         ax.text(bbox[0], bbox[1] - 2,
-                '{:s}:{:.3f} {:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f}'.format(class_name, score, top5_old[cnt][0], prob_old[cnt][0], top5_old[cnt][1], prob_old[cnt][1], top5_old[cnt][2],prob_old[cnt][2], top5_old[cnt][3], prob_old[cnt][3], top5_old[cnt][4],prob_old[cnt][4]),
+                '{:s}:{:.3f} {:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f}'.format(class_name, score, top5_old[cnt][0], prob_old[cnt][0], top5_old[cnt][1], prob_old[cnt][1], top5_old[cnt][2],prob_old[cnt][2]),
                 bbox=dict(facecolor='blue', alpha=0.5),
-                fontsize=14, color='white')
+                fontsize=35, color='white')
 
         # put bbox on enlarged area
         bbox_enlarged = enlarged_rois[i, :]
@@ -95,10 +96,14 @@ def vis_detections(im, class_name, dets_nms_all, thresh=0.5):
                           bbox_enlarged[3] - bbox_enlarged[1], fill=False,
                           edgecolor='black', linewidth=3.5)
             )
+        #ax.text(bbox_enlarged[0], bbox_enlarged[3] + 5,
+        #      '{:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f}'.format(top5[cnt][0], prob[cnt][0], top5[cnt][1], prob[cnt][1], top5[cnt][2],prob[cnt][2], top5[cnt][3], prob[cnt][3], top5[cnt][4],prob[cnt][4]),
+        #show top 3
+        top5[cnt] = map(lambda x: x.split(',')[0], top5[cnt])
         ax.text(bbox_enlarged[0], bbox_enlarged[3] + 5,
-                '{:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f}'.format(top5[cnt][0], prob[cnt][0], top5[cnt][1], prob[cnt][1], top5[cnt][2],prob[cnt][2], top5[cnt][3], prob[cnt][3], top5[cnt][4],prob[cnt][4]),
+                '{:s}:{:.2f} {:s}:{:.2f} {:s}:{:.2f}'.format(top5[cnt][0], prob[cnt][0], top5[cnt][1], prob[cnt][1], top5[cnt][2],prob[cnt][2]),
                 bbox=dict(facecolor='blue', alpha=0.5),
-                fontsize=14, color='white')
+                fontsize=35, color='white')
         cnt += 1
 
     #ax.set_title(('{} detections with '

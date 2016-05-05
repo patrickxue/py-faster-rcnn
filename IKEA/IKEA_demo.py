@@ -89,7 +89,6 @@ def demo(net, qid, data, db):
   #GT_sf = gl.SFrame()
   #GT_sf["image"] = GT_db
   #GT_sf["pid"] = GT_pid
-  #ipdb.set_trace()
   #alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
   #dfe = gl.load_model(alexnet)
   #GT_feat = dfe.transform(GT_sf)
@@ -205,8 +204,11 @@ if __name__ == '__main__':
   q_cls_id = 5
   q_cls = cls_sf["cls"][q_cls_id]
   data_cls = data[data["cls"]==q_cls]
-  qid = input(">>> input query id: 0~{}: ".format(data_cls.__len__() - 1))
-  #qid = 0
-  #demo(net, qid, data, full_db)
-  demo(net, qid, data_cls, full_db)
-  #get_cand_db(net, data)
+  while True:
+    qid = input(">>> input query id: 0~{}: ".format(data_cls.__len__() - 1))
+    if qid == "q":
+      break
+    #qid = 0
+    #demo(net, qid, data, full_db)
+    demo(net, qid, data_cls, full_db)
+    #get_cand_db(net, data)

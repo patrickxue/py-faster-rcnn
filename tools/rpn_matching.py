@@ -62,7 +62,7 @@ def transform_cand(cand_sf, qid, dfe):
     cand_sf["qid"] = qid * np.ones((cand_sf.__len__())).astype("int")
     return cand_sf
 
-def transform_and_build_nn(cand_sf, qid, dfe, db="./features_sframe.gl", radius=0.51, k=3):   
+def transform_and_build_nn(cand_sf, qid, dfe, db="./features_sframe.gl", radius=0.51, k=5):   
     if cand_sf.__len__() == 0:
       ipdb.set_trace()
     if dfe == "ImageNet_21k":
@@ -76,8 +76,9 @@ def transform_and_build_nn(cand_sf, qid, dfe, db="./features_sframe.gl", radius=
     if "feature" in db_sf.column_names():
       db_sf.rename({"feature": "deep_features.image"})
     # use label="pid" to include pid in nn
-    nn = gl.nearest_neighbors.create(db_sf,label="pid", features=['deep_features.image'],distance='cosine')
-    neighbors = nn.query(cand_sf,radius=radius,k=k)
+    nn = gl.nearest_neighbors.create(db_sf,label="pid", features=['deep_features.image'],distance='euclidean')
+    #neighbors = nn.query(cand_sf,radius=radius,k=k)
+    neighbors = nn.query(cand_sf,k=k)
     neighbors_score = neighbors.join(cand_sf, on={"query_label": "id"}, how="inner")
     return neighbors_score, db_sf, cand_sf
 
@@ -247,7 +248,7 @@ def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5,
     #CONF_THRESH=np.linspace(0,1,11)
     #cdf = get_cdf(rois_nms, CONF_THRESH)
     #rois_sf_withScore = save_img_SF(im, rois_nms)
-    rois_sf = save_img_SF_scale(im, rois_nms, scale=0.2)
+    rois_sf = save_img_SF_scale(im, rois_nms, scale=0.0)
     #rois_sf = rois_sf_withScore.remove_column('score')
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix="deep_features")
     #dfe.save("./alexnet.gl")
