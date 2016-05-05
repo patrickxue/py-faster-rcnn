@@ -39,6 +39,8 @@ CLASSES = ('__background__',
            'motorbike', 'person', 'pottedplant',
            'sheep', 'sofa', 'train', 'tvmonitor')
 
+CLASSES = '__background__/person/bicycle/car/motorcycle/airplane/bus/train/truck/boat/traffic light/fire hydrant/stop sign/parking meter/bench/bird/cat/dog/horse/sheep/cow/elephant/bear/zebra/giraffe/backpack/umbrella/handbag/tie/suitcase/frisbee/skis/snowboard/sports ball/kite/baseball bat/baseball glove/skateboard/surfboard/tennis racket/bottle/wine glass/cup/fork/knife/spoon/bowl/banana/apple/sandwich/orange/broccoli/carrot/hot dog/pizza/donut/cake/chair/couch/potted plant/bed/dining table/toilet/tv/laptop/mouse/remote/keyboard/cell phone/microwave/oven/toaster/sink/refrigerator/book/clock/vase/scissors/teddy bear/hair drier/toothbrush'.split('/')
+
 ## only IKEA related classes
 #CLASSES = ('__background__', 'bottle', 'chair', 'diningtable', 'pottedplant', 'sofa', 'tvmonitor')
 NETS = {'vgg16': ('VGG16',
@@ -61,6 +63,8 @@ def transform_cand(cand_sf, qid, dfe):
     return cand_sf
 
 def transform_and_build_nn(cand_sf, qid, dfe, db="./features_sframe.gl", radius=0.51, k=3):   
+    if cand_sf.__len__() == 0:
+      ipdb.set_trace()
     if dfe == "ImageNet_21k":
       cand_sf, top1, top5, top5_prob = mdfe.mx_transform(cand_sf, batch_size=cand_sf.__len__(), dfe="Inception_21k")
     cand_sf = cand_sf.add_row_number()
@@ -226,7 +230,7 @@ def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5,
     #CONF_THRESH=np.linspace(0,1,11)
     #cdf = get_cdf(rois_nms, CONF_THRESH)
     #rois_sf_withScore = save_img_SF(im, rois_nms)
-    rois_sf = save_img_SF_scale(im, rois_nms, scale=0.5)
+    rois_sf = save_img_SF_scale(im, rois_nms, scale=0.2)
     #rois_sf = rois_sf_withScore.remove_column('score')
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix="deep_features")
     #dfe.save("./alexnet.gl")

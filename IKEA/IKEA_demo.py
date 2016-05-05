@@ -166,7 +166,10 @@ if __name__ == '__main__':
   # coco detection model
   #caffemodel = os.path.join(cfg.DATA_DIR, '../data/faster_rcnn_models/coco_vgg16_faster_rcnn_final.caffemodel')
   #prototxt = os.path.join(cfg.DATA_DIR, '../data/faster_rcnn_models/coco_faster_rcnn_vgg16_test.prototxt')
-
+  
+  # coco model form Haijie
+  prototxt = '/home/haijieg/py-faster-rcnn/models/coco/VGG16/faster_rcnn_end2end/test.prototxt'
+  caffemodel = '/home/haijieg/py-faster-rcnn/data/faster_rcnn_models/coco_vgg16_faster_rcnn_final.caffemodel'
   # imagenet 200 class detector
   #caffemodel = '/home/lonestar/rcnn_finetune/py-faster-rcnn/output/faster_rcnn_end2end/val1/vgg16_faster_rcnn_iter_100000.caffemodel'
   #prototxt = '/home/lonestar/rcnn_finetune/py-faster-rcnn/models/VGG16/faster_rcnn_end2end/test.prototxt' 
