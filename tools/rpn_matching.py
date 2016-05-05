@@ -103,12 +103,29 @@ def save_img_SF_scale(img, rois, scale=0):
         (x, y, x1, y1) = roi[0:4]
         h = roi[3] - roi[1]
         w = roi[2] - roi[0]
-        if h < 0.25*H:
+        if h >= w:
           y = max(roi[1] - scale/2.0 * h, 0)
           y1 = min(roi[3] + scale/2.0 * h, H)
-        if w < 0.25*W:
+          margin = (y1-y-w)/2.0
+          x = max(roi[0] - margin, 0)
+          x1 = min(roi[2] + margin, W)
+        if w > h:
           x = max(roi[0] - scale/2.0 * w, 0)
-          x1 = min(roi[0] + scale/2.0 * w, W)
+          x1 = min(roi[2] + scale/2.0 * w, W)
+          margin = (x1-x-h)/2.0
+          y = max(roi[1] - margin, 0)
+          y1 = min(roi[3] + margin, H)
+    #for roi in rois:
+    #    #cropped = img[y:y+h, x:x+w, :]
+    #    (x, y, x1, y1) = roi[0:4]
+    #    h = roi[3] - roi[1]
+    #    w = roi[2] - roi[0]
+    #    if h < 0.25*H:
+    #      y = max(roi[1] - scale/2.0 * h, 0)
+    #      y1 = min(roi[3] + scale/2.0 * h, H)
+    #    if w < 0.25*W:
+    #      x = max(roi[0] - scale/2.0 * w, 0)
+    #      x1 = min(roi[0] + scale/2.0 * w, W)
         cropped = img[y:y1, x:x1, :]
         #cropped = img[roi[1]:roi[3], roi[0]:roi[2], :]
         cropped_img = PIL2gl.from_pil_image(Image.fromarray(cropped))
