@@ -1,5 +1,8 @@
 *.pyc
+*.gl
+*.pkl
 .ipynb_checkpoints
+*.jpg
 lib/build
 lib/pycocotools/_mask.c
 lib/pycocotools/_mask.so

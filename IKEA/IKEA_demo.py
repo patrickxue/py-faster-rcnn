@@ -78,22 +78,22 @@ def demo(net, qid, data, db):
   neighbors = neighbors.add_row_number()
   #neighbors.print_rows()
   cata_dic_l = data[qid]["cata"]
-  topk = 3*len(cata_dic_l)  # get the same num of images as in GT
+  topk = 7*len(cata_dic_l)  # get the same num of images as in GT
   topk_rois = get_topRoI_distance(neighbors, topk=topk)
   # topk_group: SFrame with query_label and nearest neighbor list
   #topk_group = topk_rois.groupby(["query_label"], {"nn_l": gl.aggregate.CONCAT("reference_label")})
 
   # For calculating the distance beteween crop and the nearset product in ground truth catalogue
-  #GT_db = map(lambda x: x["c_img"], cata_dic_l)
-  #GT_pid = map(lambda x: x["pid"], cata_dic_l)
-  #GT_sf = gl.SFrame()
-  #GT_sf["image"] = GT_db
-  #GT_sf["pid"] = GT_pid
-  #alexnet = "~/py-faster-rcnn/tools/alexnet.gl"
-  #dfe = gl.load_model(alexnet)
-  #GT_feat = dfe.transform(GT_sf)
-  #nn = gl.nearest_neighbors.create(GT_feat,label="pid", features=['deep_features.image'],distance='cosine', verbose=False)
-  #GT_nn = nn.query(cand_sf, k=1, verbose=False)
+  GT_db = map(lambda x: x["c_img"], cata_dic_l)
+  GT_pid = map(lambda x: x["pid"], cata_dic_l)
+  GT_sf = gl.SFrame()
+  GT_sf["image"] = GT_db
+  GT_sf["pid"] = GT_pid
+  GT_feat, top1, top5, top5_prob = mdfe.mx_transform(GT_sf, batch_size=GT_sf.__len__(), dfe="Inception_21k")
+  if 'deep_features.image' not in GT_feat.column_names():
+    GT_feat.rename({"feature": "deep_features.image"})
+  nn = gl.nearest_neighbors.create(GT_feat,label="pid", features=['deep_features.image'],distance='cosine', verbose=False)
+  GT_nn = nn.query(cand_sf, k=1, verbose=False)
 
   # show the original query image
   gl.SFrame([query])["X1"].show()  # the img is small
@@ -105,14 +105,14 @@ def demo(net, qid, data, db):
   matches_db = topk_rois.join(db_sf, on={"reference_label": "pid"}, how="inner")
   matches_roi_l = []
   for roi in set(matches_db["query_label"]):
-    ## shows the ground truth closest to the crop
-    #GT_matched = GT_nn[GT_nn['query_label']==roi].sort("rank")[0]
-    #GT_matched_Id = GT_matched["reference_label"]
-    #GT_matched_dist = GT_matched["distance"]
-    ## Show ground truth
-    #print 'Ground truth image:'
-    #GT_sf[GT_sf['pid'] == GT_matched_Id]['image'].show()
-    #print 'GT distance %s, %s = %f' % (roi, GT_matched_Id, GT_matched_dist)
+    # shows the ground truth closest to the crop
+    GT_matched = GT_nn[GT_nn['query_label']==roi].sort("rank")[0]
+    GT_matched_Id = GT_matched["reference_label"]
+    GT_matched_dist = GT_matched["distance"]
+    # Show ground truth
+    print 'Ground truth image:'
+    GT_sf[GT_sf['pid'] == GT_matched_Id]['image'].show()
+    print 'GT distance %s, %s = %f' % (roi, GT_matched_Id, GT_matched_dist)
 
     # Show matched cata img
     matches_roi = matches_db[matches_db["query_label"] == roi]

@@ -89,7 +89,7 @@ def demo(net, image_name):
            '{:d} object proposals').format(timer.total_time, boxes.shape[0])
 
     # Visualize detections for each class
-    CONF_THRESH = 0
+    CONF_THRESH = 0.8
     NMS_THRESH = 0.3 # get rid of overlapping windows
     for cls_ind, cls in enumerate(CLASSES[1:]):
         cls_ind += 1 # because we skipped background
@@ -153,6 +153,7 @@ if __name__ == '__main__':
                 '001763.jpg', '004545.jpg']
     im_names = ['20134_cols06a_01_PE362778.jpg', '20141_cols30a_01_PE376670.jpg', 'Pasted image at 2016_02_10 09_03 AM.png']
     im_names = ['bedroom.jpg', 'living_room.jpg', 'kitchen.jpg']
+    im_names = ['demo_living_room.jpg']
 
     for im_name in im_names:
         print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'

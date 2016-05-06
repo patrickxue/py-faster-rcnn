@@ -76,7 +76,7 @@ def transform_and_build_nn(cand_sf, qid, dfe, db="./features_sframe.gl", radius=
     if "feature" in db_sf.column_names():
       db_sf.rename({"feature": "deep_features.image"})
     # use label="pid" to include pid in nn
-    nn = gl.nearest_neighbors.create(db_sf,label="pid", features=['deep_features.image'],distance='euclidean')
+    nn = gl.nearest_neighbors.create(db_sf,label="pid", features=['deep_features.image'],distance='cosine')
     #neighbors = nn.query(cand_sf,radius=radius,k=k)
     neighbors = nn.query(cand_sf,k=k)
     neighbors_score = neighbors.join(cand_sf, on={"query_label": "id"}, how="inner")
@@ -96,7 +96,7 @@ def image_join(neighbors, db_sf, cand_sf, query_id):
     return matched_tuple, tmp_nn
 
 def save_img_SF_scale(img, rois, scale=0):
-    """save imgs as SFrame"""
+    """save imgs as SFrame, and crop square to keep Aspect Ratio"""
     cand_sf = gl.SFrame()
     (H, W, C)= img.shape
     for roi in rois:
@@ -116,6 +116,7 @@ def save_img_SF_scale(img, rois, scale=0):
           margin = (x1-x-h)/2.0
           y = max(roi[1] - margin, 0)
           y1 = min(roi[3] + margin, H)
+    # non square enlargement
     #for roi in rois:
     #    #cropped = img[y:y+h, x:x+w, :]
     #    (x, y, x1, y1) = roi[0:4]
@@ -152,6 +153,7 @@ def save_img_SF(img, rois):
         cropped = img[roi[1]:roi[3], roi[0]:roi[2], :]
         cropped_img = PIL2gl.from_pil_image(Image.fromarray(cropped))
         #scipy.misc.imsave('crop_%d.jpg'%count, cropped)
+        cur_sf = gl.SFrame({'image': [cropped_img], 'score': [roi[4]]})
         cand_sf = cand_sf.append(cur_sf)
     return cand_sf
 
@@ -247,8 +249,8 @@ def demo(net, image_name, qid, db="./features_sframe.gl", NMS_THRESH_GLOBAL=0.5,
     rois_nms = rois_top[nms_keep, :]
     #CONF_THRESH=np.linspace(0,1,11)
     #cdf = get_cdf(rois_nms, CONF_THRESH)
-    #rois_sf_withScore = save_img_SF(im, rois_nms)
     rois_sf = save_img_SF_scale(im, rois_nms, scale=0.0)
+    #rois_sf = save_img_SF(im, rois_nms)
     #rois_sf = rois_sf_withScore.remove_column('score')
     #dfe = gl.feature_engineering.DeepFeatureExtractor('image', model='auto', output_column_prefix="deep_features")
     #dfe.save("./alexnet.gl")

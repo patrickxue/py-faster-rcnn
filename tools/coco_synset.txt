@@ -1,0 +1,80 @@
+1 person n00007846
+2 bicycle n02834778
+3 car n02959942
+4 motorcycle n03790512
+5 airplane n02691156
+6 bus n02924116
+7 train n04468005
+8 truck n04490091
+9 boat n02858304
+10 traffic light n06874185
+11 fire hydrant None
+12 stop sign None
+13 parking meter n03891332
+14 bench n02828884
+15 bird n01503061
+16 cat n02121620
+17 dog n02084071
+18 horse n02374451
+19 sheep n10588074
+20 cow n01887787
+21 elephant n02503517
+22 bear n02131653
+23 zebra n02391049
+24 giraffe n02439033
+25 backpack n02769748
+26 umbrella n04507155
+27 handbag n02774152
+28 tie n03815615
+29 suitcase n02773838
+30 frisbee n03397947
+31 skis None
+32 snowboard n04251791
+33 sports ball None
+34 kite n04284869
+35 baseball bat n02799175
+36 baseball glove n02800213
+37 skateboard n04225987
+38 surfboard None
+39 tennis racket n04409806
+40 bottle n02876657
+41 wine glass n04592099
+42 cup n03147509
+43 fork n03384167
+44 knife n13918387
+45 spoon n04284002
+46 bowl n02880940
+47 banana n07753592
+48 apple n07739125
+49 sandwich n07695965
+50 orange n07747607
+51 broccoli n07714990
+52 carrot n07730207
+53 hot dog n07697537
+54 pizza n07873807
+55 donut n07639069
+56 cake n07663899
+57 chair n03001627
+58 couch n04256520
+59 potted plant n03991062
+60 bed n02818832
+61 dining table n03201208
+62 toilet n04446276
+63 tv n06277280
+64 laptop n03642806
+65 mouse n03793489
+66 remote n04074963
+67 keyboard n03614007
+68 cell phone n02992529
+69 microwave n03761084
+70 oven n03862676
+71 toaster n04442312
+72 sink n02998563
+73 refrigerator n03273913
+74 book n02870526
+75 clock n03046257
+76 vase n04522168
+77 scissors n04148054
+78 teddy bear None
+79 hair drier n03483316
+80 toothbrush n04453156
